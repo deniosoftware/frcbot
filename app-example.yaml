@@ -1,0 +1,11 @@
+runtime: nodejs10
+env_variables:
+  # Slack client ID 
+  client_id: 
+  # Slack client secret
+  client_secret: 
+  # Slack redirect_uri
+  redirect_uri: 
+  # The Blue Alliance API key
+  # https://thebluealliance.com/apidocs
+  tbaApiKey: 
