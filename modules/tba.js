@@ -90,4 +90,34 @@ tbaClient.prototype.getEvent = function (eventCode, callback) {
     })
 }
 
+tbaClient.prototype.getEventTeams = function (eventCode, callback) {
+    request(`https://www.thebluealliance.com/api/v3/event/${eventCode}/teams`, {
+        headers: {
+            "X-TBA-Auth-Key": this.token
+        }
+    }, (err, resp, body) => {
+        if(err || resp.statusCode != 200){
+            callback(Error(), null)
+        }
+        else{
+            callback(null, JSON.parse(body))
+        }
+    })
+}
+
+tbaClient.prototype.getTeamEvents = function (team, callback) {
+    request(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${new Date().getFullYear().toString()}`, {
+        headers: {
+            "X-TBA-Auth-Key": this.token
+        }
+    }, (err, resp, body) => {
+        if(err || resp.statusCode != 200){
+            callback(Error(), null)
+        }
+        else{
+            callback(null, JSON.parse(body))
+        }
+    })
+}
+
 module.exports = tbaClient

@@ -21,5 +21,33 @@ module.exports = {
         }, (err, resp, body) => {
             console.log(body)
         })
+    },
+    postToSlashCommand(url, blocks){
+        request(url, {
+            json: true,
+            method: "POST",
+            body: {
+                response_type: "in_channel",
+                blocks: blocks
+            }
+        })
+    },
+    setAppHome(user, blocks, token){
+        request('https://slack.com/api/views.publish', {
+            json: true,
+            method: "POST",
+            body: {
+                user_id: user,
+                view: {
+                    type: "home",
+                    blocks: blocks
+                }
+            },
+            auth: {
+                bearer: token
+            }
+        }, (err, resp, body) => {
+            console.log(body)
+        })
     }
 }

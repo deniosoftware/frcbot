@@ -116,5 +116,159 @@ module.exports = {
                 }
             }
         ]
+    },
+    newEventSubscription(event, channel, key, team) {
+        var blocks = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `*Fantastic!* :tada: I've just subscribed the channel <#${channel}> to the event <https://www.thebluealliance.com/event/${event.key}|${event.name} ${event.year}>. Now, you'll recieve notifications for things such as match scores:trophy: and schedules :calendar:.`
+                }
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "To unsubscribe, just type `/tba unwatch` in this channel."
+                },
+                "accessory": {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Unsubscribe",
+                        "emoji": true
+                    },
+                    "style": "danger",
+                    "action_id": "event_unwatch",
+                    "value": key
+                }
+            }
+        ]
+
+        if (team) {
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `It looks like your team is at this event. If you want notifications for *team ${team.toString()} only*, please select the appropriate option.`
+                },
+                "accessory": {
+                    "type": "static_select",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Select an item",
+                        "emoji": true
+                    },
+                    "action_id": "event_watch_team",
+                    "options": [
+                        {
+                            "text": {
+                                "type": "plain_text",
+                                "text": "All Matches"
+                            },
+                            "value": `${key}-all`
+                        },
+                        {
+                            "text": {
+                                "type": "plain_text",
+                                "text": `Matches for team ${team.toString()}`,
+                                "emoji": true
+                            },
+                            "value": `${key}-team`
+                        }
+                    ],
+                    "initial_option": {
+                        "text": {
+                            "type": "plain_text",
+                            "text": "All Matches"
+                        },
+                        "value": `${key}-all`
+                    }
+                }
+            })
+        }
+
+        return blocks
+    },
+    appHome(events, team) {
+        var blocks = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `*Your team:* ${team ? team.toString() : ""}`
+                },
+                "accessory": {
+                    "type": "static_select",
+                    placeholder: {
+                        type: "plain_text",
+                        text: "Select a year"
+                    },
+                    action_id: "year_select",
+                    options: [
+                        {
+                            text: {
+                                type: "plain_text",
+                                text: "2019"
+                            },
+                            value: "2019"
+                        },
+                        {
+                            text: {
+                                type: "plain_text",
+                                text: "2020"
+                            },
+                            value: "2020"
+                        }
+                    ]
+                }
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "*Upcoming Events*"
+                }
+            },
+            {
+                "type": "divider"
+            }
+        ]
+        events.forEach(item => {
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `<https://www.thebluealliance.com/event/${item.code}|*${item.name}*>`
+                },
+                "fields": [
+                    {
+                        "type": "mrkdwn",
+                        "text": `*Week*\n${item.week}`
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": `*City*\n${item.city}`
+                    }
+                ],
+                "accessory": {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "View on TBA",
+                        "emoji": true
+                    },
+                    "style": "primary",
+                    "value": "click_me_123",
+                    "url": `https://www.thebluealliance.com/event/${item.code}`
+                }
+            })
+            blocks.push({
+                type: "divider"
+            })
+        })
+
+        return blocks
     }
 }

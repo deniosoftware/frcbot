@@ -17,6 +17,8 @@ var slack = require('./modules/slack')
 const { Datastore } = require('@google-cloud/datastore')
 const datastore = new Datastore()
 
+const data = require('./modules/data')
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
@@ -25,9 +27,6 @@ app.get('/', (req, res) => {
     res.sendFile("index.html", {
         root: "views/"
     })
-})
-app.all('/teaminfo', (req, res) => {
-    res.send("Coming soon...")
 })
 
 app.post('/tbaWebhook', (req, res) => {
@@ -73,11 +72,12 @@ app.get('/oauth/code', (req, res) => {
             redirect_uri: process.env.redirect_uri
         }
     }, (err, resp, body) => {
-        res.redirect('/')
-        if (err) {
+        if (err || resp.statusCode != 200) {
             console.log("Error: " + err.message)
+            res.send("Something went wrong. Please try again.")
         }
         else {
+            res.redirect('/')
             datastore.runQuery(datastore.createQuery('users').filter('team_id', JSON.parse(body).team_id), function (err, entities) {
                 if (err) {
                     console.log(err)
@@ -86,6 +86,8 @@ app.get('/oauth/code', (req, res) => {
                     //Team already exists, so update token
 
                     entities[0].token = JSON.parse(body).access_token
+                    entities[0].bot = JSON.parse(body).bot.bot_user_id
+                    entities[0].bot_token = JSON.parse(body).bot.bot_access_token
                     datastore.save(entities[0])
                 }
                 else {
@@ -93,12 +95,13 @@ app.get('/oauth/code', (req, res) => {
                         key: datastore.key('users'),
                         data: {
                             token: JSON.parse(body).access_token,
-                            team_id: JSON.parse(body).team_id
+                            team_id: JSON.parse(body).team_id,
+                            bot: JSON.parse(body).bot.bot_user_id,
+                            bot_token: JSON.parse(body).bot.bot_access_token
                         }
                     })
+                    slack.postMessage(blockMessages.welcome(), "#general", JSON.parse(body).access_token)
                 }
-
-                slack.postMessage(blockMessages.welcome(), "#general", JSON.parse(body).access_token)
             })
         }
     })
@@ -110,9 +113,35 @@ app.post('/slack/tba', (req, res) => {
     switch (parsed.command) {
         case "team":
             if (!parsed.params[0] || parsed.params[0] == "" || isNaN(parsed.params[0])) {
-                res.json({
-                    response_type: "in_channel",
-                    text: "Please type `/tba team <number>` for this to work correctly."
+                data.getTeamNumber(req.body.team_id, (err, result) => {
+                    if (err || !result) {
+                        res.json({
+                            response_type: "in_channel",
+                            text: "Please type `/tba team <number>` for this to work correctly."
+                        })
+                    }
+                    else {
+                        tbaClient.getTeam(result, (err, teamInfo) => {
+                            if (err && err.message == "404") {
+                                res.json({
+                                    response_type: "in_channel",
+                                    text: "I couldn't find that team."
+                                })
+                            }
+                            else if (err) {
+                                res.json({
+                                    response_type: "in_channel",
+                                    text: "Something went wrong on our end. Please try again in a little bit."
+                                })
+                            }
+                            else {
+                                res.json({
+                                    response_type: "in_channel",
+                                    blocks: blockMessages.team(result, teamInfo.nickname, teamInfo.rookie_year, "Test", true)
+                                })
+                            }
+                        })
+                    }
                 })
             }
             else {
@@ -130,9 +159,9 @@ app.post('/slack/tba', (req, res) => {
                         })
                     }
                     else {
-                        datastore.runQuery(datastore.createQuery('users').filter('team_id', req.body.team_id), function (err, entities) {
+                        data.getTeamNumber(req.body.team_id, (err, result) => {
                             var isYourTeam = false
-                            if (entities[0]['team_number'] && entities[0]['team_number'] == parsed.params[0]) {
+                            if (result && result == parsed.params[0]) {
                                 isYourTeam = true
                             }
 
@@ -148,15 +177,34 @@ app.post('/slack/tba', (req, res) => {
             break;
         case "watch":
             if (!parsed.params[0] || parsed.params[0] == "" || !/^\d{4}\D{3,}$/.test(parsed.params[0])) {
-                res.send("Invalid syntax.")
+                res.json({
+                    response_type: "in_channel",
+                    text: "Please type `/tba watch <event code>` for this to work correctly.\nYour event code should look like `2019mabos`. You can get event codes on <https://www.thebluealliance.com|The Blue Alliance>."
+                })
             }
             else {
                 tbaClient.getEvent(parsed.params[0], (err, event) => {
-                    if(err){
-                        res.send("Error")
+                    if (err) {
+                        res.json({
+                            response_type: "in_channel",
+                            text: "I couldn't find that event. :cry:"
+                        })
                     }
-                    else{
-                        res.send(event.name)
+                    else {
+                        tbaClient.getEventTeams(parsed.params[0], (err, result) => {
+                            data.getTeamNumber(req.body.team_id, (err, result2) => {
+                                if (err) {
+                                    console.log(err)
+                                }
+                                var isInEvent = result.some(element => {
+                                    return element.team_number == result2
+                                })
+                                res.json({
+                                    response_type: "in_channel",
+                                    blocks: blockMessages.newEventSubscription(event, req.body.channel_id, "hi", (result2 && isInEvent) ? result2 : null)
+                                })
+                            })
+                        })
                     }
                 })
             }
@@ -190,7 +238,7 @@ app.post('/slack/tba', (req, res) => {
                             else {
                                 res.json({
                                     response_type: "in_channel",
-                                    text: `Awesome! :tada: I've updated your team number to *${parsed.params[0]}*.`
+                                    text: `Awesome! :tada: I've updated your team number to *${parsed.params[0]}*.\nYou can type \`/tba unsetteam\` to unset your team number.`
                                 })
                             }
                         })
@@ -198,7 +246,18 @@ app.post('/slack/tba', (req, res) => {
                 })
             }
             break;
+        case "unsetteam":
+            data.deleteTeamNumber(req.body.team_id, (err, result) => {
+                res.json({
+                    response_type: "in_channel",
+                    text: "I've successfully deleted your team number. :heavy_check_mark:"
+                })
+            })
+
+            break;
         case "help":
+        case null:
+        case "":
             res.json({
                 response_type: "in_channel",
                 blocks: blockMessages.help()
@@ -237,7 +296,26 @@ app.post('/slack/events', (req, res) => {
                 }
             })
             break;
-        default:
+        case "app_home_opened":
+            data.getToken(req.body.team_id, true, (err, result) => {
+                if (err || !result) {
+                    console.log("Error")
+                }
+                else {
+                    data.getTeamNumber(req.body.team_id, (err, team) => {
+                        tbaClient.getTeamEvents(team, (err, events) => {
+                            slack.setAppHome(req.body.event.user, blockMessages.appHome(events.map(item => {
+                                return {
+                                    code: item.key,
+                                    name: item.name,
+                                    week: item.week ? "Week " + item.week.toString() : "_<no week>_",
+                                    city: "hi"
+                                }
+                            }), team), result)
+                        })
+                    })
+                }
+            })
             break;
     }
 })
