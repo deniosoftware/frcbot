@@ -7,7 +7,7 @@ module.exports = {
      * @param {String} channel - Channel ID or name
      * @param {String} token - OAuth token
      */
-    postMessage(blocks, channel, token){
+    postMessage(blocks, channel, token) {
         request('https://slack.com/api/chat.postMessage', {
             method: "POST",
             json: true,
@@ -22,7 +22,7 @@ module.exports = {
             console.log(body)
         })
     },
-    postToSlashCommand(url, blocks){
+    postToSlashCommand(url, blocks) {
         request(url, {
             json: true,
             method: "POST",
@@ -30,24 +30,54 @@ module.exports = {
                 response_type: "in_channel",
                 blocks: blocks
             }
-        })
-    },
-    setAppHome(user, blocks, token){
-        request('https://slack.com/api/views.publish', {
-            json: true,
-            method: "POST",
-            body: {
-                user_id: user,
-                view: {
-                    type: "home",
-                    blocks: blocks
-                }
-            },
-            auth: {
-                bearer: token
-            }
         }, (err, resp, body) => {
             console.log(body)
+        })
+    },
+    setAppHome(user, blocks, token) {
+        return new Promise((resolve, reject) => {
+            request('https://slack.com/api/views.publish', {
+                json: true,
+                method: "POST",
+                body: {
+                    user_id: user,
+                    view: {
+                        type: "home",
+                        blocks: blocks
+                    }
+                },
+                auth: {
+                    bearer: token
+                }
+            }, (err, resp, body) => {
+                if(err || resp.statusCode != 200){
+                    reject(err)
+                }
+                else{
+                    resolve(body)
+                }
+            })
+        })
+    },
+    selfJoinChannel(channelName, token){
+        return new Promise((resolve, reject) => {
+            request('https://slack.com/api/channels.join', {
+                json: true,
+                method: "POST",
+                body: {
+                    name: channelName
+                },
+                auth: {
+                    bearer: token
+                }
+            }, (err, resp, body) => {
+                if(err || resp.statusCode != 200){
+                    reject()
+                }
+                else{
+                    resolve()
+                }
+            })
         })
     }
 }

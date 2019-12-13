@@ -10,12 +10,6 @@ function tbaClient(token) {
 }
 
 /**
- * @callback getTeamCallback
- * @param {Error} err
- * @param {team} teamInfo - Team info
- */
-
-/**
  * @typedef {Object} team
  * @property {String} nickname
  * @property {String} rookie_year
@@ -24,99 +18,123 @@ function tbaClient(token) {
 /**
  * 
  * @param {number} teamNumber
- * @param {getTeamCallback} callback
  */
-tbaClient.prototype.getTeam = function (teamNumber, callback) {
-    request(`https://www.thebluealliance.com/api/v3/team/frc${teamNumber.toString()}`, {
-        headers: {
-            "X-TBA-Auth-Key": this.token
-        }
-    }, (err, resp, body) => {
-        if (err) {
-            callback(err, null)
-        }
-        else if (resp.statusCode == 404) {
-            callback(Error('404'), null)
-        }
-        else if (resp.statusCode != 200) {
-            callback(Error('TBA Error'), null)
-        }
-        else {
-            callback(null, {
-                nickname: JSON.parse(body).nickname,
-                rookie_year: JSON.parse(body).rookie_year
-            })
-        }
-    })
-}
-
-tbaClient.prototype.getAvatar = function (teamNumber, callback) {
-    request(`https://www.thebluealliance.com/api/v3/team/frc${teamNumber.toString()}/media/${new Date().getFullYear().toString()}`, {
-        headers: {
-            "X-TBA-Auth-Key": this.token
-        }
-    }, (err, resp, body) => {
-        if (!err && resp.statusCode == 200) {
-            var parsedBody = JSON.parse(body)
-
-            var base64Obj = parsedBody.find(item => {
-                return (item.type.toLowerCase() == "avatar")
-            })
-            var base64 = null
-            if (base64Obj) {
-                base64 = base64Obj.details.base64Image
+tbaClient.prototype.getTeam = function (teamNumber) {
+    return new Promise((resolve, reject) => {
+        request(`https://www.thebluealliance.com/api/v3/team/frc${teamNumber.toString()}`, {
+            headers: {
+                "X-TBA-Auth-Key": this.token
             }
-
-            callback(base64)
-        }
-        else {
-            callback(null)
-        }
+        }, (err, resp, body) => {
+            if (err || (resp.statusCode != 200 && resp.statusCode != 404)) {
+                reject()
+            }
+            else if (resp.statusCode == 404) {
+                reject("404")
+            }
+            else {
+                resolve({
+                    nickname: JSON.parse(body).nickname,
+                    rookie_year: JSON.parse(body).rookie_year,
+                    hometown: JSON.parse(body).city + ", " + JSON.parse(body).state_prov + ", " + JSON.parse(body).country
+                })
+            }
+        })
     })
 }
 
-tbaClient.prototype.getEvent = function (eventCode, callback) {
-    request(`https://www.thebluealliance.com/api/v3/event/${eventCode}`, {
-        headers: {
-            "X-TBA-Auth-Key": this.token
-        }
-    }, (err, resp, body) => {
-        if(err || resp.statusCode != 200){
-            callback(Error(), null)
-        }
-        else{
-            callback(null, JSON.parse(body))
-        }
+tbaClient.prototype.getAvatar = function (teamNumber) {
+    return new Promise((resolve, reject) => {
+        request(`https://www.thebluealliance.com/api/v3/team/frc${teamNumber.toString()}/media/${new Date().getFullYear().toString()}`, {
+            headers: {
+                "X-TBA-Auth-Key": this.token
+            }
+        }, (err, resp, body) => {
+            if (!err && resp.statusCode == 200) {
+                var parsedBody = JSON.parse(body)
+
+                var base64Obj = parsedBody.find(item => {
+                    return (item.type.toLowerCase() == "avatar")
+                })
+                var base64 = null
+                if (base64Obj) {
+                    base64 = base64Obj.details.base64Image
+                }
+
+                resolve(base64)
+            }
+            else {
+                reject()
+            }
+        })
     })
 }
 
-tbaClient.prototype.getEventTeams = function (eventCode, callback) {
-    request(`https://www.thebluealliance.com/api/v3/event/${eventCode}/teams`, {
-        headers: {
-            "X-TBA-Auth-Key": this.token
-        }
-    }, (err, resp, body) => {
-        if(err || resp.statusCode != 200){
-            callback(Error(), null)
-        }
-        else{
-            callback(null, JSON.parse(body))
-        }
+tbaClient.prototype.getEvent = function (eventCode) {
+    return new Promise((resolve, reject) => {
+        request(`https://www.thebluealliance.com/api/v3/event/${eventCode}`, {
+            headers: {
+                "X-TBA-Auth-Key": this.token
+            }
+        }, (err, resp, body) => {
+            if (err || resp.statusCode != 200) {
+                reject("eventerr")
+            }
+            else {
+                resolve(JSON.parse(body))
+            }
+        })
     })
 }
 
-tbaClient.prototype.getTeamEvents = function (team, callback) {
-    request(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${new Date().getFullYear().toString()}`, {
-        headers: {
-            "X-TBA-Auth-Key": this.token
-        }
-    }, (err, resp, body) => {
-        if(err || resp.statusCode != 200){
-            callback(Error(), null)
-        }
-        else{
-            callback(null, JSON.parse(body))
-        }
+tbaClient.prototype.getEventTeams = function (eventCode) {
+    return new Promise((resolve, reject) => {
+        request(`https://www.thebluealliance.com/api/v3/event/${eventCode}/teams`, {
+            headers: {
+                "X-TBA-Auth-Key": this.token
+            }
+        }, (err, resp, body) => {
+            if (err || resp.statusCode != 200) {
+                reject()
+            }
+            else {
+                resolve(JSON.parse(body))
+            }
+        })
+    })
+}
+
+tbaClient.prototype.getTeamEvents = function (team, year) {
+    return new Promise((resolve, reject) => {
+        request(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${year.toString()}`, {
+            headers: {
+                "X-TBA-Auth-Key": this.token
+            }
+        }, (err, resp, body) => {
+            if (err || resp.statusCode != 200) {
+                reject()
+            }
+            else {
+                resolve(JSON.parse(body))
+            }
+        })
+    })
+}
+
+tbaClient.prototype.getTeamYears = function (team) {
+    return new Promise((resolve, reject) => {
+        request(`https://www.thebluealliance.com/api/v3/team/frc${team}/years_participated`, {
+            headers: {
+                "X-TBA-Auth-Key": this.token
+            }
+        }, (err, resp, body) => {
+            if (err || resp.statusCode != 200) {
+                reject()
+            }
+            else {
+                resolve(JSON.parse(body))
+            }
+        })
     })
 }
 

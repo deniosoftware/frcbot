@@ -117,13 +117,20 @@ module.exports = {
             }
         ]
     },
+    /**
+     * 
+     * @param {String} event 
+     * @param {String} channel 
+     * @param {String} key 
+     * @param {String|null} team 
+     */
     newEventSubscription(event, channel, key, team) {
         var blocks = [
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `*Fantastic!* :tada: I've just subscribed the channel <#${channel}> to the event <https://www.thebluealliance.com/event/${event.key}|${event.name} ${event.year}>. Now, you'll recieve notifications for things such as match scores:trophy: and schedules :calendar:.`
+                    "text": `*Fantastic!* :tada: I've just subscribed the channel <#${channel}> to the event <https://www.thebluealliance.com/event/${event.key}|${event.name} ${event.year}>. Now, you'll recieve notifications for things like match scores:trophy:.`
                 }
             },
             {
@@ -136,8 +143,7 @@ module.exports = {
                     "type": "button",
                     "text": {
                         "type": "plain_text",
-                        "text": "Unsubscribe",
-                        "emoji": true
+                        "text": "Unsubscribe"
                     },
                     "style": "danger",
                     "action_id": "event_unwatch",
@@ -148,6 +154,7 @@ module.exports = {
 
         if (team) {
             blocks.push({
+                "block_id": "event_watch_team",
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
@@ -191,7 +198,24 @@ module.exports = {
 
         return blocks
     },
-    appHome(events, team) {
+    appHome(events, team, years, defaultYear) {
+        var options = years.map(item => {
+            return {
+                text: {
+                    type: "plain_text",
+                    text: item.toString()
+                },
+                value: item.toString()
+            }
+        }).reverse()
+        var defaultOption = defaultYear ? ({
+            text: {
+                type: "plain_text",
+                text: defaultYear.toString()
+            },
+            value: defaultYear.toString()
+        }) : options[0]
+
         var blocks = [
             {
                 "type": "section",
@@ -206,29 +230,15 @@ module.exports = {
                         text: "Select a year"
                     },
                     action_id: "year_select",
-                    options: [
-                        {
-                            text: {
-                                type: "plain_text",
-                                text: "2019"
-                            },
-                            value: "2019"
-                        },
-                        {
-                            text: {
-                                type: "plain_text",
-                                text: "2020"
-                            },
-                            value: "2020"
-                        }
-                    ]
+                    options: options,
+                    initial_option: defaultOption
                 }
             },
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "*Upcoming Events*"
+                    "text": "*Your Events*"
                 }
             },
             {
@@ -240,18 +250,8 @@ module.exports = {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `<https://www.thebluealliance.com/event/${item.code}|*${item.name}*>`
+                    "text": `<https://www.thebluealliance.com/event/${item.code}|*${item.name}*> _(${item.type})_\n\n:round_pushpin: ${item.location}\n\n:date: ${item.dates}${item.week ? "\n\n:clock1: " + item.week : ""}`
                 },
-                "fields": [
-                    {
-                        "type": "mrkdwn",
-                        "text": `*Week*\n${item.week}`
-                    },
-                    {
-                        "type": "mrkdwn",
-                        "text": `*City*\n${item.city}`
-                    }
-                ],
                 "accessory": {
                     "type": "button",
                     "text": {
@@ -268,7 +268,83 @@ module.exports = {
                 type: "divider"
             })
         })
+        blocks.push({
+            "type": "context",
+            "elements": [
+                {
+                    "type": "image",
+                    "image_url": "https://the-blue-alliance-slack.appspot.com/avatar/124",
+                    "alt_text": "TBA Logo"
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": "Data from <https://www.thebluealliance.com|The Blue Alliance>"
+                }
+            ]
+        })
 
+        return blocks
+    },
+    /**
+     * 
+     * @param {*} event 
+     * @param {*} match 
+     * @param {*} red 
+     * @param {*} blue 
+     * @param {*} [team] 
+     */
+    matchJustPlayed(event, match, red, blue, team) {
+        red.teams = red.teams.map(item => item.replace('frc', ''))
+        blue.teams = blue.teams.map(item => item.replace('frc', ''))
+
+        // null - not in match, true - won match, false - lost match
+        var status;
+        if(red.teams.includes(team.toString()) && red.score >= blue.score){
+            status = true;
+        }
+        else if(blue.teams.includes(team.toString()) && blue.score >= red.score){
+            status = true;
+        }
+        else if(!blue.teams.includes(team.toString()) && !red.teams.includes(team.toString())){
+            status = null;
+        }
+        else{
+            // Lost match
+            status = false;
+        }
+
+        var blocks = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `A match was just played in <https://www.thebluealliance.com/event/${event.key}|*${event.name}*>:\n<https://www.thebluealliance.com/match/${match.key}|*${match.name}*>`
+                }
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `:red_circle: *Teams*: ${red.teams.map(item => item == team ? `<https://www.thebluealliance.com/team/${item}|*` + item.toString() + "*>" : `<https://www.thebluealliance.com/team/${item}|` + item.toString() + ">").join(', ')} | *Score*: ${red.score.toString()} ${red.score >= blue.score ? ":trophy:" : ""}\n:large_blue_circle: *Teams*: ${blue.teams.map(item => item == team ? `<https://www.thebluealliance.com/team/${item}|*` + item.toString() + "*>" : `<https://www.thebluealliance.com/team/${item}|` + item.toString() + ">").join(', ')} | *Score*: ${blue.score.toString()} ${blue.score >= red.score ? ":trophy:" : ""}`
+                }
+            },
+            ...(status != null ? [{
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `Your team (*${team}*) ${status == true ? "won this match! :tada:" : "lost this match. :cry:"}`
+                }
+            }] : []),
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "Use `/tba unwatch` to unsubscribe from future notifications in this channel."
+                    }
+                ]
+            }
+        ]
         return blocks
     }
 }
