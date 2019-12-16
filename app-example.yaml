@@ -13,3 +13,5 @@ env_variables:
   tbaWebhookSecret: 
   # Slack signing secret (for verification)
   slackSigningSecret: 
+  # 99inbound URL for feedback
+  feedbackUrl: 

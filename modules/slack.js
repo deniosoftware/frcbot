@@ -19,7 +19,26 @@ module.exports = {
                 bearer: token
             }
         }, (err, resp, body) => {
-            console.log(body)
+            if (body.ok == false && body.error == "not_in_channel") {
+                // Self join channel
+                this.channelInfo(token, channel).then(info => {
+                    return this.selfJoinChannel(info.channel.name, token)
+                }).then(() => {
+                    request('https://slack.com/api/chat.postMessage', {
+                        method: "POST",
+                        json: true,
+                        body: {
+                            channel: channel,
+                            blocks: blocks
+                        },
+                        auth: {
+                            bearer: token
+                        }
+                    })
+                }).catch(() => {
+                    console.log("Error")
+                })
+            }
         })
     },
     postToSlashCommand(url, blocks) {
@@ -35,6 +54,7 @@ module.exports = {
         })
     },
     setAppHome(user, blocks, token) {
+        console.log("Setting app home...")
         return new Promise((resolve, reject) => {
             request('https://slack.com/api/views.publish', {
                 json: true,
@@ -50,16 +70,16 @@ module.exports = {
                     bearer: token
                 }
             }, (err, resp, body) => {
-                if(err || resp.statusCode != 200){
+                if (err || resp.statusCode != 200) {
                     reject(err)
                 }
-                else{
+                else {
                     resolve(body)
                 }
             })
         })
     },
-    selfJoinChannel(channelName, token){
+    selfJoinChannel(channelName, token) {
         return new Promise((resolve, reject) => {
             request('https://slack.com/api/channels.join', {
                 json: true,
@@ -71,11 +91,51 @@ module.exports = {
                     bearer: token
                 }
             }, (err, resp, body) => {
-                if(err || resp.statusCode != 200){
+                if (err || resp.statusCode != 200) {
                     reject()
                 }
-                else{
+                else {
                     resolve()
+                }
+            })
+        })
+    },
+    openModal(trigger_id, view, token) {
+        return new Promise((resolve, reject) => {
+            request("https://slack.com/api/views.open", {
+                auth: {
+                    bearer: token
+                },
+                method: "POST",
+                json: true,
+                body: {
+                    trigger_id,
+                    view
+                }
+            }, (err, resp, body) => {
+                if (err || resp.statusCode != 200) {
+                    reject()
+                    console.log(body)
+                }
+                else {
+                    resolve()
+                }
+            })
+        })
+    },
+    channelInfo(token, channel) {
+        return new Promise((resolve, reject) => {
+            request("https://slack.com/api/channels.info", {
+                qs: {
+                    token,
+                    channel
+                }
+            }, (err, resp, body) => {
+                if (err || resp.statusCode != 200) {
+                    reject(err || null)
+                }
+                else {
+                    resolve(JSON.parse(body))
                 }
             })
         })

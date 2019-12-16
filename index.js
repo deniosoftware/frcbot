@@ -26,6 +26,8 @@ const crypto = require('crypto')
 app.set('view engine', 'ejs')
 app.set('views', 'views')
 
+app.use(express.static("public"))
+
 app.use(require('body-parser').json({
     verify: (req, res, buf) => {
         req.rawBody = buf
@@ -147,12 +149,20 @@ app.post('/slack/tba', (req, res) => {
         case "watch":
             if (!parsed.params[0] || parsed.params[0] == "") {
                 data.getEventSubscriptions(req.body.team_id).then(subs => {
-                    res.send(subs.length == 0 ? "You're not subscribed to any events. Try `/tba watch <event code>`." : subs.map(item => item.event + " <#" + item.channel + ">").join(', '))
+                    res.json({
+                        response_type: "in_channel",
+                        text: subs.length == 0 ? "You're not subscribed to any events. Try `/tba watch <event code>`." : `You're subscribed to ${subs.length.toString()} event${subs.length == 1 ? "" : "s"}.\n>>>` + subs.map(item => item.event + " in <#" + item.channel + ">").join('\n')
+                    })
                 })
             }
             else if (!/^\d{4}\D{3,}$/.test(parsed.params[0])) {
                 res.json({
                     text: "Please type `/tba watch <event code>` for this to work correctly.\nYour event code should look like `2019mabos`. You can get event codes on <https://www.thebluealliance.com|The Blue Alliance>."
+                })
+            }
+            else if (req.body.channel_id.charAt(0).toLowerCase() != "c") {
+                res.json({
+                    text: "Sadly, this only works in public channels :shrug:"
                 })
             }
             else {
@@ -262,6 +272,56 @@ app.post('/slack/tba', (req, res) => {
                 })
             })
             break;
+        case "schedule":
+            if (!parsed.params[0] || parsed.params[0] == "") {
+                res.send("Please type `/tba schedule <event code>` for this to work.")
+            }
+            else if (!/^\d{4}\D{3,}$/.test(parsed.params[0])) {
+                res.json({
+                    text: "Please type `/tba schedule <event code>` for this to work correctly.\nYour event code should look like `2019mabos`. You can get event codes on <https://www.thebluealliance.com|The Blue Alliance>."
+                })
+            }
+            else {
+                tbaClient.getEvent(parsed.params[0]).then(event => {
+                    res.json({
+                        response_type: "in_channel",
+                        blocks: [
+                            {
+                                type: "section",
+                                text: {
+                                    type: "mrkdwn",
+                                    text: `Please click here to view the match schedule for <https://www.thebluealliance.com/event/${parsed.params[0]}|*${event.name} ${event.year.toString()}*>.`
+                                },
+                                accessory: {
+                                    type: "button",
+                                    text: {
+                                        type: "plain_text",
+                                        text: "View"
+                                    },
+                                    action_id: "schedule",
+                                    value: parsed.params[0]
+                                }
+                            }
+                        ]
+                    })
+                }).catch(() => {
+                    res.json({
+                        text: "I couldn't find that event :cry:"
+                    })
+                })
+            }
+            break;
+        case "feedback":
+            data.getToken(req.body.team_id).then(token => {
+                slack.openModal(req.body.trigger_id, require('./modules/feedbackModal'), token)
+            }).then(() => {
+                res.send()
+            }).catch(() => {
+                res.json({
+                    text: "Hmm... :thinking_face: ironically, something went wrong while trying to submit a bug.\nPlease try again, or contact caleb@deniosoftware.com if the problem isn't fixed."
+                })
+            })
+            break;
         case "help":
         case null:
         case "":
@@ -278,6 +338,8 @@ app.post('/slack/tba', (req, res) => {
     }
 })
 
+app.post('/slack/pineapple', require('./modules/pineapple'))
+
 app.post('/slack/events', (req, res) => {
     if (req.body.challenge) {
         res.send(req.body.challenge)
@@ -287,11 +349,10 @@ app.post('/slack/events', (req, res) => {
     switch (req.body.event.type) {
         case "app_uninstalled":
             datastore.runQuery(datastore.createQuery('users').filter('team_id', req.body.team_id), function (err, entities) {
-                if (err) {
-                    console.log(err.message)
-                }
-                else {
-                    datastore.delete(entities[0][datastore.KEY], function (err) {
+                datastore.runQuery(datastore.createQuery('subscriptions').filter('team_id', req.body.team_id), function (err2, entities2) {
+                    var array = entities.concat(entities2)
+
+                    datastore.delete(array.map(item => item[datastore.KEY]), function (err) {
                         if (err) {
                             console.log(err.message)
                         }
@@ -299,7 +360,7 @@ app.post('/slack/events', (req, res) => {
                             console.log("Success.")
                         }
                     })
-                }
+                })
             })
             break;
         case "app_home_opened":
@@ -345,8 +406,66 @@ app.post('/slack/interactivity', (req, res) => {
                             }
                         })
                     })
-                    
+
                     break
+                case "schedule":
+                    data.getToken(payload.team.id).then(token => {
+                        var event;
+                        tbaClient.getEvent(payload.actions[0].value).then(_event => {
+                            event = _event
+                            return tbaClient.getEventSchedule(payload.actions[0].value)
+                        }).then(schedule => {
+                            data.getTeamNumber(payload.team.id).then(team => {
+                                slack.openModal(payload.trigger_id, require('./modules/scheduleModal')(schedule, { name: event.name + " " + event.year.toString(), key: payload.actions[0].value }, team ? team.toString() : null), token)
+                            })
+                        })
+                    })
+                    break
+            }
+            break
+        case "view_submission":
+            if (payload.view.callback_id == "feedback") {
+                var values = payload.view.state.values
+
+                request(process.env.feedbackUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    json: true,
+                    body: {
+                        message: values.description.description.value,
+                        type: values.type.type.selected_option.value,
+                        email: values.email.email.value,
+                        workspace: payload.team.domain,
+                        user: payload.user.id
+                    }
+                })
+                res.json({
+                    response_action: "update",
+                    view: {
+                        type: "modal",
+                        title: {
+                            type: "plain_text",
+                            text: "Submit Feedback"
+                        },
+                        close: {
+                            type: "plain_text",
+                            text: "Close"
+                        },
+                        blocks: [
+                            {
+                                type: "section",
+                                text: {
+                                    type: "plain_text",
+                                    text: "Your feedback has been successfully sent. :heavy_check_mark: Thanks!",
+                                    emoji: true
+                                }
+                            }
+                        ]
+                    }
+                })
             }
             break
         default:
@@ -378,6 +497,7 @@ app.listen(process.env.PORT || 8080, () => {
  * @param {number} [year]
  */
 function updateAppHome(user, workspace, year) {
+    console.log("Updating...")
     var token;
     var team;
     var years;
@@ -400,7 +520,7 @@ function updateAppHome(user, workspace, year) {
             var week1 = a.week != null ? a.week + 1 : null
             var week2 = b.week != null ? b.week + 1 : null
 
-            if (!week1 && !week2) {
+            /*if (!week1 && !week2) {
                 return 0
             }
             else if (week1 && week2) {
@@ -412,6 +532,9 @@ function updateAppHome(user, workspace, year) {
             else if (week2 && !week1) {
                 return 1
             }
+            else{*/
+            return new Date(a.start_date + " 00:00").getTime() - new Date(b.start_date + " 00:00").getTime()
+            //}
         })
 
         events = events.map(item => {

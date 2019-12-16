@@ -138,4 +138,21 @@ tbaClient.prototype.getTeamYears = function (team) {
     })
 }
 
+tbaClient.prototype.getEventSchedule = function(event_code){
+    return new Promise((resolve, reject) => {
+        request(`https://www.thebluealliance.com/api/v3/event/${event_code}/matches`, {
+            headers: {
+                "X-TBA-Auth-Key": this.token
+            }
+        }, (err, resp, body) => {
+            if(err || resp.statusCode != 200){
+                reject()
+            }
+            else{
+                resolve(JSON.parse(body))
+            }
+        })
+    })
+}
+
 module.exports = tbaClient

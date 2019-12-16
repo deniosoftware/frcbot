@@ -59,7 +59,42 @@ module.exports = {
                 type: "section",
                 text: {
                     type: "mrkdwn",
-                    text: "Help is on the way!"
+                    text: "`/tba team <number>`: Get info on the given FRC team."
+                }
+            },
+            {
+                type: "section",
+                text: {
+                    type: "mrkdwn",
+                    text: "`/tba setteam <number>`: Set your team number.\nUse `/tba unsetteam` to unset this."
+                }
+            },
+            {
+                type: "section",
+                text: {
+                    type: "mrkdwn",
+                    text: "`/tba watch <event code>`: Subscribe the current channel to match notifications for the given event. Event codes look like `2019mabos` and can be found on <https://www.thebluealliance.com|The Blue Alliance>.\nUse `/tba unwatch` in the same channel to unsubscribe, and `/tba watch` to view all of your subscriptions."
+                }
+            },
+            {
+                type: "section",
+                text: {
+                    type: "mrkdwn",
+                    text: "`/tba schedule <number>`: Display the match schedule for the given event. This will highlight your team, as set with `/tba setteam`."
+                }
+            },
+            {
+                type: "section",
+                text: {
+                    type: "mrkdwn",
+                    text: "`/tba feedback`: Report a bug, suggest a feature, or let us know how much you love TBA for Slack :grin:"
+                }
+            },
+            {
+                type: "section",
+                text: {
+                    type: "mrkdwn",
+                    text: "`/tba help`: Show the message you're looking at right now :wink:"
                 }
             }
         ]
@@ -91,7 +126,7 @@ module.exports = {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "*Get team info:* Can't remember the rookie year of that one team? :thinking_face: Just type `/tba team <number>` to get info on any FRC team."
+                    "text": "*Get team info:* Can't remember the name of that one team? :thinking_face: Just type `/tba team <number>` to get info on any FRC team."
                 }
             },
             {
@@ -105,7 +140,7 @@ module.exports = {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "*Need help?* Just shoot an e-mail to caleb@deniosoftware.com to report an issue (or suggest a feature)."
+                    "text": "*Need help?* Just type `/tba feedback` in any channel to report an issue (or suggest a feature)."
                 }
             },
             {
@@ -250,8 +285,22 @@ module.exports = {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `<https://www.thebluealliance.com/event/${item.code}|*${item.name}*> _(${item.type})_\n\n:round_pushpin: ${item.location}\n\n:date: ${item.dates}${item.week ? "\n\n:clock1: " + item.week : ""}`
+                    "text": `<https://www.thebluealliance.com/event/${item.code}|*${item.name}*> _(${item.type})_`
                 },
+                "fields": [
+                    {
+                        "type": "mrkdwn",
+                        "text": `:round_pushpin: ${item.location}`
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": `:date: ${item.dates}`
+                    },
+                    ...(item.week ? [{
+                        "type": "mrkdwn",
+                        "text": item.week ? ":clock1: " + item.week : ""
+                    }] : [])
+                ],
                 "accessory": {
                     "type": "button",
                     "text": {
