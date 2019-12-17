@@ -9,8 +9,12 @@
     <body>
         <div id="header">
             <h1>The Blue Alliance <span style="font-weight: normal">for</span> Slack</h1>
-            <a href="https://slack.com/oauth/v2/authorize?client_id=<%- client_id %>&scope=commands%20chat:write%20channels:join&redirect_uri=<%- redirect_uri %>"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a><br />
+            <a href="https://slack.com/oauth/v2/authorize?client_id=<%- client_id %>&scope=<%- scopes %>&redirect_uri=<%- redirect_uri %>"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a><br />
             <span>This is an unofficial Slack integration for <a href="https://www.thebluealliance.com" style="color: white">The Blue Alliance</a>.</span>
+        </div>
+        <h1>Hi!</h1>
+        <div id="footer">
+            Created by <a href="https://calebdenio.me">Caleb Denio</a> from <a href="https://deniosoftware.com">Denio Software</a>. &middot; <a href="/privacy">Privacy</a> &middot; <a href="/support">Submit feedback</a>
         </div>
     </body>
 </html>

@@ -44,7 +44,16 @@ app.get('/', (req, res) => {
     res.render('index', {
         redirect_uri: process.env.redirect_uri,
         client_id: process.env.client_id,
+        scopes: process.env.botScopes
     })
+})
+
+app.get('/privacy', (req, res) => { res.render('privacy') })
+app.get('/support', (req, res) => { res.render('support') })
+app.get('/welcome', (req, res) => { res.render('welcome') })
+
+app.get('/install', (req, res) => {
+    res.redirect(`https://slack.com/oauth/v2/authorize?client_id=${process.env.client_id}&scope=${process.env.botScopes}&redirect_uri=${process.env.redirect_uri}`)
 })
 
 app.use('/slack', require('./modules/verification/slackVerification'))
@@ -69,7 +78,7 @@ app.get('/oauth/code', (req, res) => {
         else {
             console.log(body)
 
-            res.redirect('/')
+            res.redirect('/welcome')
             datastore.runQuery(datastore.createQuery('users').filter('team_id', JSON.parse(body).team.id), function (err, entities) {
                 if (err) {
                     console.log(err)
@@ -90,7 +99,8 @@ app.get('/oauth/code', (req, res) => {
                             bot: JSON.parse(body).bot_user_id,
                         }
                     })
-                    slack.postMessage(blockMessages.welcome(), JSON.parse(body).authed_user.id, JSON.parse(body).access_token)
+                    //This no longer happens
+                    //slack.postMessage(blockMessages.welcome(), JSON.parse(body).authed_user.id, JSON.parse(body).access_token)
                 }
             })
         }
@@ -343,6 +353,7 @@ app.post('/slack/pineapple', require('./modules/pineapple'))
 app.post('/slack/events', (req, res) => {
     if (req.body.challenge) {
         res.send(req.body.challenge)
+        return
     }
 
     res.end()
@@ -350,21 +361,43 @@ app.post('/slack/events', (req, res) => {
         case "app_uninstalled":
             datastore.runQuery(datastore.createQuery('users').filter('team_id', req.body.team_id), function (err, entities) {
                 datastore.runQuery(datastore.createQuery('subscriptions').filter('team_id', req.body.team_id), function (err2, entities2) {
-                    var array = entities.concat(entities2)
+                    datastore.runQuery(datastore.createQuery('app_home_visits').filter('team_id', req.body.team_id), function (err3, entities3) {
+                        var array = entities.concat(entities2, entities3)
 
-                    datastore.delete(array.map(item => item[datastore.KEY]), function (err) {
-                        if (err) {
-                            console.log(err.message)
-                        }
-                        else {
-                            console.log("Success.")
-                        }
+                        datastore.delete(array.map(item => item[datastore.KEY]), function (err) {
+                            if (err) {
+                                console.log(err.message)
+                            }
+                            else {
+                                console.log("Success.")
+                            }
+                        })
                     })
                 })
             })
             break;
         case "app_home_opened":
+            //               |
+            // Defined below v
             updateAppHome(req.body.event.user, req.body.team_id)
+
+            // Has this user visited the App Home before?
+            data.getUserVisitedAppHome(req.body.event.user, req.body.team_id).then(visited => {
+                // They haven't.
+                if (!visited) {
+                    // Tell us not to do this again
+                    data.setUserVisitedAppHome(req.body.event.user, req.body.team_id).catch(err => {
+                        console.log("Ahh!! " + err.message)
+                    })
+
+                    // Send them a welcoming message
+                    data.getToken(req.body.team_id).then(token => {
+                        slack.postMessage(blockMessages.welcome(), req.body.event.user, token)
+                    })
+                }
+            }).catch(err => {
+                console.log("Ahh!! " + err.message)
+            })
             break;
     }
 })

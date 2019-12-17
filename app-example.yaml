@@ -15,3 +15,5 @@ env_variables:
   slackSigningSecret: 
   # 99inbound URL for feedback
   feedbackUrl: 
+  # Comma- or space-seperated OAuth scopes for Slack
+  botScopes: 

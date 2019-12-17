@@ -7,6 +7,7 @@
 
 body, html{
     height: 100%;
+    text-align: center;
 }
 
 #header{
@@ -16,7 +17,7 @@ body, html{
     background-size: cover;
     background-position: center center;
 
-    height: 100%;
+    height: 70%;
     width: 100%;
 
     display: flex;
@@ -27,4 +28,17 @@ body, html{
 
 #header h1{
     font-size: 75px;
+}
+
+#footer{
+    padding: 20px 0;
+    background-color: rgb(240, 240, 240);
+}
+
+code{
+    font-family: monospace;
+    background-color: rgb(230, 230, 230);
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: inherit;
 }

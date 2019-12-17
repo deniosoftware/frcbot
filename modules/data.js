@@ -153,5 +153,40 @@ module.exports = {
                 }
             })
         })
+    },
+    /**
+     * Mark a user as having visited the App Home
+     * @param {String} user 
+     * @param {String} workspace 
+     */
+    setUserVisitedAppHome(user, workspace){
+        return new Promise((resolve, reject) => {
+            datastore.save({
+                key: datastore.key('app_home_visits'),
+                data: {
+                    user,
+                    team_id: workspace
+                }
+            }, function(err, resp){
+                if(err){
+                    reject(err)
+                }
+                else{
+                    resolve()
+                }
+            })
+        })
+    },
+    getUserVisitedAppHome(user, workspace){
+        return new Promise((resolve, reject) => {
+            datastore.runQuery(datastore.createQuery('app_home_visits').filter('user', user).filter('team_id', workspace), function(err, entities){
+                if(err){
+                    reject(err)
+                }
+                else{
+                    resolve(entities.length > 0)
+                }
+            })
+        })
     }
 }
