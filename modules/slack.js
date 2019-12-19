@@ -114,11 +114,12 @@ module.exports = {
                 }
             }, (err, resp, body) => {
                 if (err || resp.statusCode != 200) {
-                    reject()
+                    reject(err || body)
                     console.log(body)
                 }
                 else {
                     resolve()
+                    console.log(JSON.stringify(body))
                 }
             })
         })

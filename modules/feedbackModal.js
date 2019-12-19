@@ -116,12 +116,12 @@ module.exports = {
             "elements": [
                 {
                     "type": "image",
-                    "image_url": "https://tba-slack.deniosoftware.com/img/github.png",
+                    "image_url": "https://the-blue-alliance-slack.appspot.com/img/github.png",
                     "alt_text": "GitHub logo"
                 },
                 {
                     "type": "mrkdwn",
-                    "text": "<https://github.com/deniosoftware/tba-slack/issues/new|Open an issue> on <https://github.com/deniosoftware/tba-slack|GitHub> for a faster response."
+                    "text": "<https://github.com/deniosoftware/frcbot/issues/new|Open an issue> on <https://github.com/deniosoftware/frcbot|GitHub> for a faster response."
                 }
             ]
         }
