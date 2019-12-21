@@ -348,13 +348,13 @@ module.exports = {
 
         // null - not in match, true - won match, false - lost match
         var status;
-        if(red.teams.includes(team.toString()) && red.score >= blue.score){
+        if(team && red.teams.includes(team.toString()) && red.score >= blue.score){
             status = true;
         }
-        else if(blue.teams.includes(team.toString()) && blue.score >= red.score){
+        else if(team && blue.teams.includes(team.toString()) && blue.score >= red.score){
             status = true;
         }
-        else if(!blue.teams.includes(team.toString()) && !red.teams.includes(team.toString())){
+        else if(!team || !blue.teams.includes(team.toString()) && !red.teams.includes(team.toString())){
             status = null;
         }
         else{

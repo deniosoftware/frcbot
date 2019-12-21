@@ -21,9 +21,7 @@ module.exports = {
         }, (err, resp, body) => {
             if (body.ok == false && body.error == "not_in_channel") {
                 // Self join channel
-                this.channelInfo(token, channel).then(info => {
-                    return this.selfJoinChannel(info.channel.name, token)
-                }).then(() => {
+                this.selfJoinChannel(channel, token).then(() => {
                     request('https://slack.com/api/chat.postMessage', {
                         method: "POST",
                         json: true,
@@ -79,20 +77,20 @@ module.exports = {
             })
         })
     },
-    selfJoinChannel(channelName, token) {
+    selfJoinChannel(channel, token) {
         return new Promise((resolve, reject) => {
-            request('https://slack.com/api/channels.join', {
+            request('https://slack.com/api/conversations.join', {
                 json: true,
                 method: "POST",
                 body: {
-                    name: channelName
+                    channel
                 },
                 auth: {
                     bearer: token
                 }
             }, (err, resp, body) => {
                 if (err || resp.statusCode != 200) {
-                    reject()
+                    reject(err)
                 }
                 else {
                     resolve()
@@ -120,23 +118,6 @@ module.exports = {
                 else {
                     resolve()
                     console.log(JSON.stringify(body))
-                }
-            })
-        })
-    },
-    channelInfo(token, channel) {
-        return new Promise((resolve, reject) => {
-            request("https://slack.com/api/channels.info", {
-                qs: {
-                    token,
-                    channel
-                }
-            }, (err, resp, body) => {
-                if (err || resp.statusCode != 200) {
-                    reject(err || null)
-                }
-                else {
-                    resolve(JSON.parse(body))
                 }
             })
         })

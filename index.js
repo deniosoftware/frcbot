@@ -108,6 +108,9 @@ app.get('/oauth/code', (req, res) => {
     else if(req.query.error){
         res.redirect('/')
     }
+    else{
+        res.redirect('/')
+    }
 })
 
 app.post('/slack/tba', (req, res) => {
@@ -204,7 +207,7 @@ app.post('/slack/tba', (req, res) => {
 
                     return data.getToken(req.body.team_id)
                 }).then(_token => {
-                    return slack.selfJoinChannel(req.body.channel_name, _token)
+                    return slack.selfJoinChannel(req.body.channel_id, _token)
                 }).then(() => {
                     var isInEvent = teams.some(element => element.team_number == number)
                     slack.postToSlashCommand(req.body.response_url, blockMessages.newEventSubscription(event, req.body.channel_id, key, (number && isInEvent) ? number : null))
