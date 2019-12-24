@@ -117,8 +117,31 @@ module.exports = {
                 }
                 else {
                     resolve()
-                    console.log(JSON.stringify(body))
+                    console.log(body)
                 }
+            })
+        })
+    },
+    updateModal(id, token, view){
+        return new Promise((resolve, reject) => {
+            request("https://slack.com/api/views.update", {
+                method: "POST",
+                auth: {
+                    bearer: token
+                },
+                json: true,
+                body: {
+                    view,
+                    view_id: id
+                }
+            }, (err, resp, body) => {
+                if(err || resp.statusCode != 200){
+                    reject(err)
+                }
+                else{
+                    resolve()
+                }
+                console.log(body)
             })
         })
     }

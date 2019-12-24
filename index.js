@@ -105,10 +105,10 @@ app.get('/oauth/code', (req, res) => {
             }
         })
     }
-    else if(req.query.error){
+    else if (req.query.error) {
         res.redirect('/')
     }
-    else{
+    else {
         res.redirect('/')
     }
 })
@@ -478,6 +478,56 @@ app.post('/slack/interactivity', (req, res) => {
                         })
                     })
                     break
+                case "event_options":
+                    data.getToken(payload.team.id).then(token => {
+                        datastore.get(datastore.key(['subscriptions', parseInt(payload.actions[0].value)]), function (err, entity) {
+                            if (!entity) {
+                                request(payload.response_url, {
+                                    method: "POST",
+                                    json: true,
+                                    body: {
+                                        delete_original: "true"
+                                    }
+                                })
+                            }
+                            else {
+                                slack.openModal(payload.trigger_id, require('./modules/eventOptionsModal')(entity, entity[datastore.KEY]), token)
+                            }
+                        })
+                    })
+                    break
+                case "modal_unsubscribe":
+                    data.getToken(payload.team.id).then(token => {
+                        datastore.delete(datastore.key(['subscriptions', parseInt(payload.view.private_metadata)]), function (err, resp) {
+                            if (err) {
+                                console.log(err.message)
+                            }
+                            else {
+                                slack.updateModal(payload.view.id, token, {
+                                    type: "modal",
+                                    title: {
+                                        type: "plain_text",
+                                        text: "Submit Feedback"
+                                    },
+                                    close: {
+                                        type: "plain_text",
+                                        text: "Close"
+                                    },
+                                    blocks: [
+                                        {
+                                            type: "section",
+                                            text: {
+                                                type: "plain_text",
+                                                text: "I've successfully unsubscribed this channel from this event.",
+                                                emoji: true
+                                            }
+                                        }
+                                    ]
+                                })
+                            }
+                        })
+                    })
+                    break
             }
             break
         case "view_submission":
@@ -517,6 +567,33 @@ app.post('/slack/interactivity', (req, res) => {
                                 text: {
                                     type: "plain_text",
                                     text: "Your feedback has been successfully sent. :heavy_check_mark: Thanks!",
+                                    emoji: true
+                                }
+                            }
+                        ]
+                    }
+                })
+            }
+            else if (payload.view.callback_id == "event_options") {
+                console.log(payload.view.state.values.notification_types.notification_types.selected_options.map(item => item.text.text))
+                res.json({
+                    response_action: "update",
+                    view: {
+                        type: "modal",
+                        title: {
+                            type: "plain_text",
+                            text: "Event Options"
+                        },
+                        close: {
+                            type: "plain_text",
+                            text: "Close"
+                        },
+                        blocks: [
+                            {
+                                type: "section",
+                                text: {
+                                    type: "plain_text",
+                                    text: "Your preferences have been successfully saved. :heavy_check_mark: Thanks!",
                                     emoji: true
                                 }
                             }
