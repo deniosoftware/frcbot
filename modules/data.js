@@ -63,20 +63,30 @@ module.exports = {
         var key = datastore.key('subscriptions')
 
         return new Promise((resolve, reject) => {
-            datastore.save({
-                key: key,
-                data: {
-                    team_id: workspace,
-                    event: event,
-                    channel: channel,
-                    type: "all"
-                }
-            }, function (err, resp) {
-                if (err) {
+            datastore.runQuery(datastore.createQuery('subscriptions').filter('team_id', workspace).filter('event', event).filter('channel', channel), function (err, entities) {
+                if(err){
                     reject(err)
                 }
+                else if (entities && entities.length > 0) {
+                    reject("alreadysubscribed")
+                }
                 else {
-                    resolve(key.id)
+                    datastore.save({
+                        key: key,
+                        data: {
+                            team_id: workspace,
+                            event: event,
+                            channel: channel,
+                            type: "all"
+                        }
+                    }, function (err, resp) {
+                        if (err) {
+                            reject(err)
+                        }
+                        else {
+                            resolve(key.id)
+                        }
+                    })
                 }
             })
         })

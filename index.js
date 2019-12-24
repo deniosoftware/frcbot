@@ -214,7 +214,7 @@ app.post('/slack/tba', (req, res) => {
                 }).catch(err => {
                     var text
                     if (err == "alreadysubscribed") {
-                        text = `The channel <#${req.body.channel_id}> is already subscribed to an event.\nTry \`/frc unwatch\` to unsubscribe from that event.`
+                        text = `The channel <#${req.body.channel_id}> is already subscribed to the event \`${parsed.params[0]}\`.\nTry \`/frc unwatch\` to unsubscribe from that event.`
                     }
                     else if (err == "eventerr") {
                         text = "I couldn't find that event :cry:"
