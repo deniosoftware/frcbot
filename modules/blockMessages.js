@@ -351,5 +351,51 @@ module.exports = {
             }
         ]
         return blocks
+    },
+    subscriptionList(events){
+        if(events.length == 0){
+            return [
+                {
+                    type: "section",
+                    text: {
+                        type: "mrkdwn",
+                        text: "You're not subscribed to any events. Try `/frc watch <event code>`."
+                    }
+                }
+            ]
+        }
+        else{
+            var blocks = [
+                {
+                    type: "section",
+                    text: {
+                        type: "plain_text",
+                        text: `You're subscribed to ${events.length.toString()} event${events.length == 1 ? "" : "s"}:`
+                    }
+                }
+            ]
+
+            blocks.push(...events.map(item => {
+                return {
+                    type: "section",
+                    text: {
+                        type: "mrkdwn",
+                        text: `${item.event} in <#${item.channel}>`
+                    },
+                    accessory: {
+                        type: "button",
+                        text: {
+                            type: "plain_text",
+                            text: "Options"
+                        },
+                        style: "primary",
+                        action_id: "event_options",
+                        value: item.keyId.toString()
+                    }
+                }
+            }))
+
+            return blocks
+        }
     }
 }

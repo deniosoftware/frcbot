@@ -89,6 +89,7 @@ module.exports = (data, key) => {
                     text: "Matches"
                 },
                 element: {
+                    action_id: "type",
                     type: "static_select",
                     placeholder: {
                         type: "plain_text",
@@ -109,7 +110,20 @@ module.exports = (data, key) => {
                             },
                             value: "team"
                         }
-                    ]
+                    ],
+                    initial_option: data.type == "team" ? {
+                        text: {
+                            type: "plain_text",
+                            text: "Just your team"
+                        },
+                        value: "team"
+                    } : {
+                            text: {
+                                type: "plain_text",
+                                text: "All matches"
+                            },
+                            value: "all"
+                        }
                 }
             },
             {

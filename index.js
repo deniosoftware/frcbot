@@ -167,7 +167,10 @@ app.post('/slack/tba', (req, res) => {
                 data.getEventSubscriptions(req.body.team_id).then(subs => {
                     res.json({
                         response_type: "in_channel",
-                        text: subs.length == 0 ? "You're not subscribed to any events. Try `/frc watch <event code>`." : `You're subscribed to ${subs.length.toString()} event${subs.length == 1 ? "" : "s"}.\n>>>` + subs.map(item => item.event + " in <#" + item.channel + ">").join('\n')
+                        blocks: blockMessages.subscriptionList(subs.map(item => {
+                            item.keyId = item[datastore.KEY].id;
+                            return item
+                        }))
                     })
                 })
             }
@@ -575,7 +578,21 @@ app.post('/slack/interactivity', (req, res) => {
                 })
             }
             else if (payload.view.callback_id == "event_options") {
-                console.log(payload.view.state.values.notification_types.notification_types.selected_options.map(item => item.text.text))
+                console.log(payload.view.state.values.type.type.selected_option.text.text)
+                datastore.get(datastore.key(['subscriptions', parseInt(payload.view.private_metadata)]), function (err, entity) {
+                    if (err) {
+                        console.log(err.message)
+                    }
+                    else {
+                        entity.type = payload.view.state.values.type.type.selected_option.value
+
+                        entity.upcoming_match = payload.view.state.values.notification_types.notification_types.selected_options.some(item => item.value == "upcoming_match")
+                        entity.match_score = payload.view.state.values.notification_types.notification_types.selected_options.some(item => item.value == "match_score")
+                        entity.event_schedule = payload.view.state.values.notification_types.notification_types.selected_options.some(item => item.value == "event_schedule")
+
+                        datastore.save(entity)
+                    }
+                })
                 res.json({
                     response_action: "update",
                     view: {

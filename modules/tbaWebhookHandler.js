@@ -12,6 +12,7 @@ module.exports = (req, res) => {
         case "match_score":
             var query = datastore.createQuery('subscriptions')
                 .filter('event', req.body.message_data.match.event_key)
+                .filter('match_score', true)
 
             datastore.runQuery(query, function (err, entities) {
                 if (err) {
