@@ -63,30 +63,20 @@ module.exports = {
         var key = datastore.key('subscriptions')
 
         return new Promise((resolve, reject) => {
-            datastore.runQuery(datastore.createQuery('subscriptions').filter('channel', channel).filter('team_id', workspace), (err, entities) => {
+            datastore.save({
+                key: key,
+                data: {
+                    team_id: workspace,
+                    event: event,
+                    channel: channel,
+                    type: "all"
+                }
+            }, function (err, resp) {
                 if (err) {
                     reject(err)
                 }
-                else if (entities.length != 0) {
-                    reject("alreadysubscribed")
-                }
                 else {
-                    datastore.save({
-                        key: key,
-                        data: {
-                            team_id: workspace,
-                            event: event,
-                            channel: channel,
-                            type: "all"
-                        }
-                    }, function (err, resp) {
-                        if (err) {
-                            reject(err)
-                        }
-                        else {
-                            resolve(key.id)
-                        }
-                    })
+                    resolve(key.id)
                 }
             })
         })
@@ -131,22 +121,22 @@ module.exports = {
             })
         })
     },
-    setSubType(key, type){
+    setSubType(key, type) {
         return new Promise((resolve, reject) => {
-            datastore.get(datastore.key(['subscriptions', parseInt(key)]), function(err, entity){
-                if(err){
+            datastore.get(datastore.key(['subscriptions', parseInt(key)]), function (err, entity) {
+                if (err) {
                     reject(err)
                 }
-                else if(!entity){
+                else if (!entity) {
                     reject()
                 }
-                else{
+                else {
                     entity.type = type;
-                    datastore.save(entity, function(err){
-                        if(err){
+                    datastore.save(entity, function (err) {
+                        if (err) {
                             reject(err)
                         }
-                        else{
+                        else {
                             resolve()
                         }
                     })
@@ -159,7 +149,7 @@ module.exports = {
      * @param {String} user 
      * @param {String} workspace 
      */
-    setUserVisitedAppHome(user, workspace){
+    setUserVisitedAppHome(user, workspace) {
         return new Promise((resolve, reject) => {
             datastore.save({
                 key: datastore.key('app_home_visits'),
@@ -167,23 +157,23 @@ module.exports = {
                     user,
                     team_id: workspace
                 }
-            }, function(err, resp){
-                if(err){
+            }, function (err, resp) {
+                if (err) {
                     reject(err)
                 }
-                else{
+                else {
                     resolve()
                 }
             })
         })
     },
-    getUserVisitedAppHome(user, workspace){
+    getUserVisitedAppHome(user, workspace) {
         return new Promise((resolve, reject) => {
-            datastore.runQuery(datastore.createQuery('app_home_visits').filter('user', user).filter('team_id', workspace), function(err, entities){
-                if(err){
+            datastore.runQuery(datastore.createQuery('app_home_visits').filter('user', user).filter('team_id', workspace), function (err, entities) {
+                if (err) {
                     reject(err)
                 }
-                else{
+                else {
                     resolve(entities.length > 0)
                 }
             })

@@ -171,7 +171,7 @@ app.post('/slack/tba', (req, res) => {
                     })
                 })
             }
-            else if (!/^\d{4}\D{3,}$/.test(parsed.params[0])) {
+            else if (!/^\d{4}.{3,}$/.test(parsed.params[0])) {
                 res.json({
                     text: "Please type `/frc watch <event code>` for this to work correctly.\nYour event code should look like `2019mabos`. You can get event codes on <https://www.thebluealliance.com|The Blue Alliance>."
                 })
