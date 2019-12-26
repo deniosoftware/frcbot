@@ -352,8 +352,8 @@ module.exports = {
         ]
         return blocks
     },
-    subscriptionList(events){
-        if(events.length == 0){
+    subscriptionList(events) {
+        if (events.length == 0) {
             return [
                 {
                     type: "section",
@@ -364,7 +364,7 @@ module.exports = {
                 }
             ]
         }
-        else{
+        else {
             var blocks = [
                 {
                     type: "section",
@@ -397,5 +397,41 @@ module.exports = {
 
             return blocks
         }
+    },
+    upcomingMatch(event, match, teams, team) {
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `There's an upcoming match in *<https://www.thebluealliance.com/event/${event.key}|${event.name}>*:\n*<https://www.thebluealliance.com/match/${match.key}|${match.name}>*`
+                }
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `*Teams:*\n${teams.map(item => item.replace("frc", "")).map(item => (team && item == team.toString() ? `*${item}*` : item)).join(", ")}`
+                }
+            },
+            ...((team && teams.map(item => item.replace("frc", "")).includes(team.toString())) ? [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `:warning: Your team (*${team}*) is in this match.`
+                    }
+                }
+            ] : []),
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "Use `/frc unwatch` to unsubscribe from future notifications in this channel."
+                    }
+                ]
+            }
+        ]
     }
 }
