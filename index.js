@@ -485,13 +485,22 @@ app.post('/slack/interactivity', (req, res) => {
                     data.getToken(payload.team.id).then(token => {
                         datastore.get(datastore.key(['subscriptions', parseInt(payload.actions[0].value)]), function (err, entity) {
                             if (!entity) {
-                                request(payload.response_url, {
-                                    method: "POST",
-                                    json: true,
-                                    body: {
-                                        delete_original: "true"
-                                    }
-                                })
+                                slack.openModal(payload.trigger_id, {
+                                    type: "modal",
+                                    title: {
+                                        type: "plain_text",
+                                        text: "Event Options"
+                                    },
+                                    blocks: [
+                                        {
+                                            type: "section",
+                                            text: {
+                                                type: "mrkdwn",
+                                                text: "This subscription doesn't exist. Type `/frc watch` to view all of your event subscriptions."
+                                            }
+                                        }
+                                    ]
+                                }, token)
                             }
                             else {
                                 slack.openModal(payload.trigger_id, require('./modules/eventOptionsModal')(entity, entity[datastore.KEY]), token)
