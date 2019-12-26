@@ -165,71 +165,27 @@ module.exports = {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `*Fantastic!* :tada: I've just subscribed the channel <#${channel}> to the event <https://www.thebluealliance.com/event/${event.key}|${event.name} ${event.year}>. Now, you'll recieve notifications for things like match scores :trophy:.`
+                    "text": `*Fantastic!* :tada: I've just subscribed the channel <#${channel}> to the event <https://www.thebluealliance.com/event/${event.key}|${event.name} ${event.year}>. Now, you'll recieve notifications for things like match scores :trophy: and upcoming matches :clock1:.`
                 }
             },
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "To unsubscribe, just type `/frc unwatch` in this channel."
+                    "text": "To unsubscribe :no_entry:, or manage your subscription preferences :gear:, click or tap the *Options* button."
                 },
                 "accessory": {
                     "type": "button",
                     "text": {
                         "type": "plain_text",
-                        "text": "Unsubscribe"
+                        "text": "Options"
                     },
-                    "style": "danger",
-                    "action_id": "event_unwatch",
-                    "value": key
+                    "action_id": "event_options",
+                    "value": key,
+                    "style": "primary"
                 }
             }
         ]
-
-        if (team) {
-            blocks.push({
-                "block_id": "event_watch_team",
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": `It looks like your team is at this event. If you want notifications for *team ${team.toString()} only*, please select the appropriate option.`
-                },
-                "accessory": {
-                    "type": "static_select",
-                    "placeholder": {
-                        "type": "plain_text",
-                        "text": "Select an item",
-                        "emoji": true
-                    },
-                    "action_id": "event_watch_team",
-                    "options": [
-                        {
-                            "text": {
-                                "type": "plain_text",
-                                "text": "All Matches"
-                            },
-                            "value": `${key}-all`
-                        },
-                        {
-                            "text": {
-                                "type": "plain_text",
-                                "text": `Matches for team ${team.toString()}`,
-                                "emoji": true
-                            },
-                            "value": `${key}-team`
-                        }
-                    ],
-                    "initial_option": {
-                        "text": {
-                            "type": "plain_text",
-                            "text": "All Matches"
-                        },
-                        "value": `${key}-all`
-                    }
-                }
-            })
-        }
 
         return blocks
     },
@@ -348,16 +304,16 @@ module.exports = {
 
         // null - not in match, true - won match, false - lost match
         var status;
-        if(team && red.teams.includes(team.toString()) && red.score >= blue.score){
+        if (team && red.teams.includes(team.toString()) && red.score >= blue.score) {
             status = true;
         }
-        else if(team && blue.teams.includes(team.toString()) && blue.score >= red.score){
+        else if (team && blue.teams.includes(team.toString()) && blue.score >= red.score) {
             status = true;
         }
-        else if(!team || !blue.teams.includes(team.toString()) && !red.teams.includes(team.toString())){
+        else if (!team || !blue.teams.includes(team.toString()) && !red.teams.includes(team.toString())) {
             status = null;
         }
-        else{
+        else {
             // Lost match
             status = false;
         }
@@ -395,5 +351,87 @@ module.exports = {
             }
         ]
         return blocks
+    },
+    subscriptionList(events) {
+        if (events.length == 0) {
+            return [
+                {
+                    type: "section",
+                    text: {
+                        type: "mrkdwn",
+                        text: "You're not subscribed to any events. Try `/frc watch <event code>`."
+                    }
+                }
+            ]
+        }
+        else {
+            var blocks = [
+                {
+                    type: "section",
+                    text: {
+                        type: "plain_text",
+                        text: `You're subscribed to ${events.length.toString()} event${events.length == 1 ? "" : "s"}:`
+                    }
+                }
+            ]
+
+            blocks.push(...events.map(item => {
+                return {
+                    type: "section",
+                    text: {
+                        type: "mrkdwn",
+                        text: `${item.event} in <#${item.channel}>`
+                    },
+                    accessory: {
+                        type: "button",
+                        text: {
+                            type: "plain_text",
+                            text: "Options"
+                        },
+                        style: "primary",
+                        action_id: "event_options",
+                        value: item.keyId.toString()
+                    }
+                }
+            }))
+
+            return blocks
+        }
+    },
+    upcomingMatch(event, match, teams, team) {
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `There's an upcoming match in *<https://www.thebluealliance.com/event/${event.key}|${event.name}>*:\n*<https://www.thebluealliance.com/match/${match.key}|${match.name}>*`
+                }
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `*Teams:*\n${teams.map(item => item.replace("frc", "")).map(item => (team && item == team.toString() ? `*${item}*` : item)).join(", ")}`
+                }
+            },
+            ...((team && teams.map(item => item.replace("frc", "")).includes(team.toString())) ? [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `:warning: Your team (*${team}*) is in this match.`
+                    }
+                }
+            ] : []),
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "Use `/frc unwatch` to unsubscribe from future notifications in this channel."
+                    }
+                ]
+            }
+        ]
     }
 }

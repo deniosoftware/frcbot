@@ -105,10 +105,10 @@ app.get('/oauth/code', (req, res) => {
             }
         })
     }
-    else if(req.query.error){
+    else if (req.query.error) {
         res.redirect('/')
     }
-    else{
+    else {
         res.redirect('/')
     }
 })
@@ -167,7 +167,10 @@ app.post('/slack/tba', (req, res) => {
                 data.getEventSubscriptions(req.body.team_id).then(subs => {
                     res.json({
                         response_type: "in_channel",
-                        text: subs.length == 0 ? "You're not subscribed to any events. Try `/frc watch <event code>`." : `You're subscribed to ${subs.length.toString()} event${subs.length == 1 ? "" : "s"}.\n>>>` + subs.map(item => item.event + " in <#" + item.channel + ">").join('\n')
+                        blocks: blockMessages.subscriptionList(subs.map(item => {
+                            item.keyId = item[datastore.KEY].id;
+                            return item
+                        }))
                     })
                 })
             }
@@ -478,6 +481,65 @@ app.post('/slack/interactivity', (req, res) => {
                         })
                     })
                     break
+                case "event_options":
+                    data.getToken(payload.team.id).then(token => {
+                        datastore.get(datastore.key(['subscriptions', parseInt(payload.actions[0].value)]), function (err, entity) {
+                            if (!entity) {
+                                slack.openModal(payload.trigger_id, {
+                                    type: "modal",
+                                    title: {
+                                        type: "plain_text",
+                                        text: "Event Options"
+                                    },
+                                    blocks: [
+                                        {
+                                            type: "section",
+                                            text: {
+                                                type: "mrkdwn",
+                                                text: "This subscription doesn't exist. Type `/frc watch` to view all of your event subscriptions."
+                                            }
+                                        }
+                                    ]
+                                }, token)
+                            }
+                            else {
+                                slack.openModal(payload.trigger_id, require('./modules/eventOptionsModal')(entity, entity[datastore.KEY]), token)
+                            }
+                        })
+                    })
+                    break
+                case "modal_unsubscribe":
+                    data.getToken(payload.team.id).then(token => {
+                        datastore.delete(datastore.key(['subscriptions', parseInt(payload.view.private_metadata)]), function (err, resp) {
+                            if (err) {
+                                console.log(err.message)
+                            }
+                            else {
+                                slack.updateModal(payload.view.id, token, {
+                                    type: "modal",
+                                    title: {
+                                        type: "plain_text",
+                                        text: "Submit Feedback"
+                                    },
+                                    close: {
+                                        type: "plain_text",
+                                        text: "Close"
+                                    },
+                                    blocks: [
+                                        {
+                                            type: "section",
+                                            text: {
+                                                type: "plain_text",
+                                                text: "I've successfully unsubscribed this channel from this event.",
+                                                emoji: true
+                                            }
+                                        }
+                                    ]
+                                })
+                            }
+                        })
+                    })
+                    break
             }
             break
         case "view_submission":
@@ -517,6 +579,47 @@ app.post('/slack/interactivity', (req, res) => {
                                 text: {
                                     type: "plain_text",
                                     text: "Your feedback has been successfully sent. :heavy_check_mark: Thanks!",
+                                    emoji: true
+                                }
+                            }
+                        ]
+                    }
+                })
+            }
+            else if (payload.view.callback_id == "event_options") {
+                console.log(payload.view.state.values.type.type.selected_option.text.text)
+                datastore.get(datastore.key(['subscriptions', parseInt(payload.view.private_metadata)]), function (err, entity) {
+                    if (err) {
+                        console.log(err.message)
+                    }
+                    else {
+                        entity.type = payload.view.state.values.type.type.selected_option.value
+
+                        entity.upcoming_match = payload.view.state.values.notification_types.notification_types.selected_options.some(item => item.value == "upcoming_match")
+                        entity.match_score = payload.view.state.values.notification_types.notification_types.selected_options.some(item => item.value == "match_score")
+                        entity.event_schedule = payload.view.state.values.notification_types.notification_types.selected_options.some(item => item.value == "event_schedule")
+
+                        datastore.save(entity)
+                    }
+                })
+                res.json({
+                    response_action: "update",
+                    view: {
+                        type: "modal",
+                        title: {
+                            type: "plain_text",
+                            text: "Event Options"
+                        },
+                        close: {
+                            type: "plain_text",
+                            text: "Close"
+                        },
+                        blocks: [
+                            {
+                                type: "section",
+                                text: {
+                                    type: "plain_text",
+                                    text: "Your preferences have been successfully saved. :heavy_check_mark: Thanks!",
                                     emoji: true
                                 }
                             }

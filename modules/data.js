@@ -75,9 +75,12 @@ module.exports = {
                         key: key,
                         data: {
                             team_id: workspace,
-                            event: event,
-                            channel: channel,
-                            type: "all"
+                            event,
+                            channel,
+                            type: "all",
+                            match_score: true,
+                            upcoming_match: false,
+                            event_schedule: false
                         }
                     }, function (err, resp) {
                         if (err) {
