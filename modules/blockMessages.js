@@ -172,7 +172,7 @@ module.exports = {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "To unsubscribe :no_entry:, or manage your subscription preferences :gear:, click or tap the *Options* button."
+                    "text": "By default, you're subscribed to *Match Score* notifications for *all matches*. To unsubscribe :no_entry:, or manage your subscription preferences :gear:, click or tap the *Options* button."
                 },
                 "accessory": {
                     "type": "button",
