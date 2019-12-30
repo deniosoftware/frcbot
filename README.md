@@ -5,7 +5,7 @@
 
 This app provides FRC integration, right here in Slack! Get info on any FIRST Robotics Competition team, subscribe to match results, get event schedules, and more!<br>
 
-[<img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" />](https://slack.com/oauth/v2/authorize?client_id=493879301409.842425939537&scope=commands,chat:write,channels:join&redirect_uri=https://frcbot.deniosoftware.com/oauth/code)
+[<img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" />](https://frcbot.deniosoftware.com/install)
 
 Learn more at https://frcbot.deniosoftware.com
 
