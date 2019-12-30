@@ -345,7 +345,7 @@ module.exports = {
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        "text": "Use `/frc unwatch` to unsubscribe from future notifications in this channel."
+                        "text": "Use `/frc unwatch` to unsubscribe from future notifications in this channel, or `/frc watch` to manage your subscriptions."
                     }
                 ]
             }
@@ -428,7 +428,7 @@ module.exports = {
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        "text": "Use `/frc unwatch` to unsubscribe from future notifications in this channel."
+                        "text": "Use `/frc unwatch` to unsubscribe from future notifications in this channel, or `/frc watch` to manage your subscriptions."
                     }
                 ]
             }
