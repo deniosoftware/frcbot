@@ -165,7 +165,7 @@ module.exports = {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `*Fantastic!* :tada: I've just subscribed the channel <#${channel}> to the event <https://www.thebluealliance.com/event/${event.key}|${event.name} ${event.year}>. Now, you'll recieve notifications for things like match scores :trophy: and upcoming matches :clock1:.`
+                    "text": `*Fantastic!* :tada: I've just subscribed the channel <#${channel}> to the event <https://www.thebluealliance.com/event/${event.key}|${event.name} ${event.year}>. Now, you'll receive notifications for things like match scores :trophy: and upcoming matches :clock1:.`
                 }
             },
             {

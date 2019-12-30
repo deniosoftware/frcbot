@@ -519,7 +519,7 @@ app.post('/slack/interactivity', (req, res) => {
                                     type: "modal",
                                     title: {
                                         type: "plain_text",
-                                        text: "Submit Feedback"
+                                        text: "Event Options"
                                     },
                                     close: {
                                         type: "plain_text",
