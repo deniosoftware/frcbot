@@ -155,7 +155,7 @@ app.post('/slack/tba', (req, res) => {
                     })
                 }).catch(reason => {
                     res.json({
-                        response_type: "in_channel",
+                        response_type: "ephemeral",
                         text: reason == "404" ? "I couldn't find that team." : "Something went wrong on our end. Please try again in a little bit."
                     })
                 })
