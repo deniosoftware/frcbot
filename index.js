@@ -558,6 +558,7 @@ app.post('/slack/interactivity', (req, res) => {
                         type: values.type.type.selected_option.value,
                         email: values.email.email.value,
                         workspace: payload.team.domain,
+                        team_id: payload.team.id,
                         user: payload.user.id
                     }
                 })
