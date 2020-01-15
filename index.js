@@ -23,6 +23,8 @@ const path = require('path')
 
 const crypto = require('crypto')
 
+const {PNG} = require('pngjs')
+
 app.set('view engine', 'ejs')
 app.set('views', 'views')
 
@@ -640,7 +642,17 @@ app.post('/slack/interactivity', (req, res) => {
 
 app.get('/avatar/:teamNumber', (req, res) => {
     tbaClient.getAvatar(req.params.teamNumber).then(avatar => {
-        res.contentType('image/png').send(Buffer.from(avatar, 'base64'))
+        res.contentType('image/png')
+        new PNG({
+            colorType: 2,
+            bgColor: {
+                red: 72,
+                green: 127,
+                blue: 204
+            }
+        }).parse(Buffer.from(avatar, "base64")).on("parsed", function(){
+            this.pack().pipe(res)
+        })
     }).catch(() => {
         res.contentType('image/png').sendFile(require('path').join(__dirname, "public", "img", "first.png"))
     })
