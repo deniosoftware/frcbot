@@ -47,6 +47,10 @@ module.exports = (data, key) => {
                     type: "plain_text",
                     text: "Notification Types"
                 },
+                hint: {
+                    type: "plain_text",
+                    text: "Notifications may not arrive on time. FRCBot requires the event's FMS and The Blue Alliance to be online. Please don't depend on FRCBot to tell you when you are queued for a match."
+                },
                 block_id: "notification_types",
                 element: {
                     action_id: "notification_types",
@@ -87,6 +91,10 @@ module.exports = (data, key) => {
                 label: {
                     type: "plain_text",
                     text: "Matches"
+                },
+                hint: {
+                    type: "plain_text",
+                    text: "You can set your team number by typing /frc setteam <number>"
                 },
                 element: {
                     action_id: "type",

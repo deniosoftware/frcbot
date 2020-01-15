@@ -426,6 +426,9 @@ app.post('/slack/events', (req, res) => {
                 console.log("Ahh!! " + err.message)
             })
             break;
+        case "tokens_revoked":
+            console.log("revoked")
+            break;
     }
 })
 
