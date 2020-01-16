@@ -43,10 +43,13 @@ app.use(require('body-parser').urlencoded({
 }))
 
 app.get('/', (req, res) => {
-    res.render('index', {
-        redirect_uri: process.env.redirect_uri,
-        client_id: process.env.client_id,
-        scopes: process.env.botScopes
+    datastore.runQuery(datastore.createQuery('users'), (err, entities) => {
+        res.render('index', {
+            redirect_uri: process.env.redirect_uri,
+            client_id: process.env.client_id,
+            scopes: process.env.botScopes,
+            users: entities.length.toString()
+        })
     })
 })
 
