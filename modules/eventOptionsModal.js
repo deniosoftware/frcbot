@@ -144,10 +144,12 @@ module.exports = (data, key) => {
                     type: "plain_text",
                     text: "A comma-seperated list of additional teams you'd like to subscribe to."
                 },
+                block_id: "additional_teams",
                 optional: true,
                 element: {
+                    action_id: "additional_teams",
                     type: "plain_text_input",
-                    initial_value: data.additional_teams || "",
+                    initial_value: data.additional_teams ? JSON.parse(data.additional_teams).join(', ') : "",
                     placeholder: {
                         type: "plain_text",
                         text: "e.g. 254,6763,238"
