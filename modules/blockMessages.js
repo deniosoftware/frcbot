@@ -412,7 +412,7 @@ module.exports = {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `*Teams:*\n${teams.map(item => item.replace("frc", "")).map(item => (teamsToHighlight.includes(item) ? `:star:*${item}*` : item)).join(", ")}`
+                    "text": `*Teams:*\n${teams.map(item => item.replace("frc", "")).map(item => (teamsToHighlight.includes(item) ? `:star:<https://www.thebluealliance.com/team/${item}|*${item}*>` : (`<https://www.thebluealliance.com/team/${item}|${item}>`))).join(", ")}`
                 }
             },
             ...((team && teams.map(item => item.replace("frc", "")).includes(team.toString())) ? [
