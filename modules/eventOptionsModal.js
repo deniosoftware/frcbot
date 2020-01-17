@@ -114,7 +114,7 @@ module.exports = (data, key) => {
                         {
                             text: {
                                 type: "plain_text",
-                                text: "Just your team"
+                                text: "Just your team + additional teams"
                             },
                             value: "team"
                         }
@@ -122,7 +122,7 @@ module.exports = (data, key) => {
                     initial_option: data.type == "team" ? {
                         text: {
                             type: "plain_text",
-                            text: "Just your team"
+                            text: "Just your team + additional teams"
                         },
                         value: "team"
                     } : {
@@ -132,6 +132,28 @@ module.exports = (data, key) => {
                             },
                             value: "all"
                         }
+                }
+            },
+            {
+                type: "input",
+                label: {
+                    type: "plain_text",
+                    text: "Additional teams"
+                },
+                hint: {
+                    type: "plain_text",
+                    text: "A comma-seperated list of additional teams you'd like to subscribe to."
+                },
+                block_id: "additional_teams",
+                optional: true,
+                element: {
+                    action_id: "additional_teams",
+                    type: "plain_text_input",
+                    initial_value: data.additional_teams ? JSON.parse(data.additional_teams).join(', ') : "",
+                    placeholder: {
+                        type: "plain_text",
+                        text: "e.g. 254,6763,238"
+                    }
                 }
             },
             {

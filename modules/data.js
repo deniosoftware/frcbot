@@ -80,7 +80,8 @@ module.exports = {
                             type: "all",
                             match_score: true,
                             upcoming_match: false,
-                            event_schedule: false
+                            event_schedule: false,
+                            additional_teams: JSON.stringify([])
                         }
                     }, function (err, resp) {
                         if (err) {

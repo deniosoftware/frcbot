@@ -165,7 +165,7 @@ module.exports = {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `*Fantastic!* :tada: I've just subscribed the channel <#${channel}> to the event <https://www.thebluealliance.com/event/${event.key}|${event.name} ${event.year}>. Now, you'll receive notifications for things like match scores :trophy: and upcoming matches :clock1:.`
+                    "text": `*Fantastic!* :tada: I've just subscribed the channel <#${channel}> to the event <https://www.thebluealliance.com/event/${event.key}|${event.name} ${event.year}>. Now, you'll receive notifications for match scores :trophy:.`
                 }
             },
             {
@@ -297,8 +297,9 @@ module.exports = {
      * @param {*} red 
      * @param {*} blue 
      * @param {*} [team] 
+     * @param {String[]} teamsToHighlight
      */
-    matchJustPlayed(event, match, red, blue, team) {
+    matchJustPlayed(event, match, red, blue, team, teamsToHighlight) {
         red.teams = red.teams.map(item => item.replace('frc', ''))
         blue.teams = blue.teams.map(item => item.replace('frc', ''))
 
@@ -330,7 +331,7 @@ module.exports = {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `:red_circle: *Teams*: ${red.teams.map(item => item == team ? `<https://www.thebluealliance.com/team/${item}|*` + item.toString() + "*>" : `<https://www.thebluealliance.com/team/${item}|` + item.toString() + ">").join(', ')} | *Score*: ${red.score.toString()} ${red.score >= blue.score ? ":trophy:" : ""}\n:large_blue_circle: *Teams*: ${blue.teams.map(item => item == team ? `<https://www.thebluealliance.com/team/${item}|*` + item.toString() + "*>" : `<https://www.thebluealliance.com/team/${item}|` + item.toString() + ">").join(', ')} | *Score*: ${blue.score.toString()} ${blue.score >= red.score ? ":trophy:" : ""}`
+                    "text": `:red_circle: *Teams*: ${red.teams.map(item => teamsToHighlight.includes(item) ? `:star:<https://www.thebluealliance.com/team/${item}|*` + item.toString() + "*>" : `<https://www.thebluealliance.com/team/${item}|` + item.toString() + ">").join(', ')} | *Score*: ${red.score.toString()} ${red.score >= blue.score ? ":trophy:" : ""}\n:large_blue_circle: *Teams*: ${blue.teams.map(item => teamsToHighlight.includes(item) ? `:star:<https://www.thebluealliance.com/team/${item}|*` + item.toString() + "*>" : `<https://www.thebluealliance.com/team/${item}|` + item.toString() + ">").join(', ')} | *Score*: ${blue.score.toString()} ${blue.score >= red.score ? ":trophy:" : ""}`
                 }
             },
             ...(status != null ? [{
@@ -398,7 +399,7 @@ module.exports = {
             return blocks
         }
     },
-    upcomingMatch(event, match, teams, team) {
+    upcomingMatch(event, match, teams, team, teamsToHighlight) {
         return [
             {
                 "type": "section",
@@ -411,7 +412,7 @@ module.exports = {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": `*Teams:*\n${teams.map(item => item.replace("frc", "")).map(item => (team && item == team.toString() ? `*${item}*` : item)).join(", ")}`
+                    "text": `*Teams:*\n${teams.map(item => item.replace("frc", "")).map(item => (teamsToHighlight.includes(item) ? `:star:*${item}*` : item)).join(", ")}`
                 }
             },
             ...((team && teams.map(item => item.replace("frc", "")).includes(team.toString())) ? [

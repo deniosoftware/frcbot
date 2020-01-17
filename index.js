@@ -23,7 +23,7 @@ const path = require('path')
 
 const crypto = require('crypto')
 
-const {PNG} = require('pngjs')
+const { PNG } = require('pngjs')
 
 app.set('view engine', 'ejs')
 app.set('views', 'views')
@@ -593,45 +593,35 @@ app.post('/slack/interactivity', (req, res) => {
                 })
             }
             else if (payload.view.callback_id == "event_options") {
-                console.log(payload.view.state.values.type.type.selected_option.text.text)
-                datastore.get(datastore.key(['subscriptions', parseInt(payload.view.private_metadata)]), function (err, entity) {
-                    if (err) {
-                        console.log(err.message)
-                    }
-                    else {
-                        entity.type = payload.view.state.values.type.type.selected_option.value
+                var additional_teams = payload.view.state.values.additional_teams.additional_teams.value ? payload.view.state.values.additional_teams.additional_teams.value.split(/\,\s*/) : []
 
-                        entity.upcoming_match = payload.view.state.values.notification_types.notification_types.selected_options.some(item => item.value == "upcoming_match")
-                        entity.match_score = payload.view.state.values.notification_types.notification_types.selected_options.some(item => item.value == "match_score")
-                        entity.event_schedule = payload.view.state.values.notification_types.notification_types.selected_options.some(item => item.value == "event_schedule")
+                if (!additional_teams.every(i => /^\d+$/.test(i))) {
+                    res.send({
+                        response_action: "errors",
+                        errors: {
+                            additional_teams: "Please make sure you've entered a comma-seperated list of team numbers."
+                        }
+                    })
+                }
+                else {
+                    datastore.get(datastore.key(['subscriptions', parseInt(payload.view.private_metadata)]), function (err, entity) {
+                        if (err) {
+                            console.log(err.message)
+                        }
+                        else {
+                            entity.type = payload.view.state.values.type.type.selected_option.value
 
-                        datastore.save(entity)
-                    }
-                })
-                res.json({
-                    response_action: "update",
-                    view: {
-                        type: "modal",
-                        title: {
-                            type: "plain_text",
-                            text: "Event Options"
-                        },
-                        close: {
-                            type: "plain_text",
-                            text: "Close"
-                        },
-                        blocks: [
-                            {
-                                type: "section",
-                                text: {
-                                    type: "plain_text",
-                                    text: "Your preferences have been successfully saved. :heavy_check_mark: Thanks!",
-                                    emoji: true
-                                }
-                            }
-                        ]
-                    }
-                })
+                            entity.upcoming_match = payload.view.state.values.notification_types.notification_types.selected_options.some(item => item.value == "upcoming_match")
+                            entity.match_score = payload.view.state.values.notification_types.notification_types.selected_options.some(item => item.value == "match_score")
+                            entity.event_schedule = payload.view.state.values.notification_types.notification_types.selected_options.some(item => item.value == "event_schedule")
+
+                            entity.additional_teams = JSON.stringify(additional_teams)
+
+                            datastore.save(entity)
+                        }
+                    })
+                    res.send()
+                }
             }
             break
         default:
@@ -650,7 +640,7 @@ app.get('/avatar/:teamNumber', (req, res) => {
                 green: 127,
                 blue: 204
             }
-        }).parse(Buffer.from(avatar, "base64")).on("parsed", function(){
+        }).parse(Buffer.from(avatar, "base64")).on("parsed", function () {
             this.pack().pipe(res)
         })
     }).catch(() => {
