@@ -2,7 +2,7 @@ module.exports = (req, res) => {
     var pineappleCount = 5;
     var pineapples = ""
 
-    if(!isNaN(req.body.text) && parseInt(req.body.text) < 21){
+    if(!isNaN(req.body.text) && parseInt(req.body.text) < 21 && parseInt(req.body.text) > -21 && parseInt(req.body.text) != 0){
         pineappleCount = Math.abs(parseInt(req.body.text))
     }
 
