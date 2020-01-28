@@ -3,7 +3,7 @@ module.exports = (req, res) => {
     var pineapples = ""
 
     if(!isNaN(req.body.text) && parseInt(req.body.text) < 21){
-        pineappleCount = parseInt(req.body.text)
+        pineappleCount = Math.abs(parseInt(req.body.text))
     }
 
     for(i = 0; i < pineappleCount; i++){
@@ -13,6 +13,11 @@ module.exports = (req, res) => {
         }
 
         pineapples += array.join("") + "\n"
+    }
+
+    // If the number was negative, reverse the 🍍s.
+    if(parseInt(req.body.text) < 0){
+        pineapples = pineapples.split("\n").reverse().join("\n")
     }
 
     res.json({
