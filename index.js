@@ -631,15 +631,35 @@ app.post('/slack/interactivity', (req, res) => {
 })
 
 app.get('/avatar/:teamNumber', (req, res) => {
+    var blue = {
+        red: 72,
+        green: 127,
+        blue: 204
+    }
+    var red = {
+        red: 218,
+        green: 52,
+        blue: 52
+    }
+
+    var bgColor
+    var colorType = 2
+
+    if(!req.query.color || req.query.color == "blue"){
+        bgColor = blue
+    }
+    else if(req.query.color == "red"){
+        bgColor = red
+    }
+    else{
+        colorType = 6
+    }
+        
     tbaClient.getAvatar(req.params.teamNumber).then(avatar => {
         res.contentType('image/png')
         new PNG({
-            colorType: 2,
-            bgColor: {
-                red: 72,
-                green: 127,
-                blue: 204
-            }
+            colorType,
+            bgColor
         }).parse(Buffer.from(avatar, "base64")).on("parsed", function () {
             this.pack().pipe(res)
         })
