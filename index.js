@@ -205,7 +205,7 @@ app.post('/slack/tba', (req, res) => {
                 }).then(_number => {
                     number = _number
 
-                    return data.addEventWatch(parsed.params[0], req.body.channel_id, req.body.team_id)
+                    return data.addEventWatch(parsed.params[0], event.name + " " + event.year.toString(), req.body.channel_id, req.body.team_id)
                 }).then(_key => {
                     key = _key
                     console.log(key)
@@ -501,7 +501,7 @@ app.post('/slack/interactivity', (req, res) => {
                                             type: "section",
                                             text: {
                                                 type: "mrkdwn",
-                                                text: "This subscription doesn't exist. Type `/frc watch` to view all of your event subscriptions."
+                                                text: "This subscription doesn't exist. :cry: Type `/frc watch` to view all of your event subscriptions."
                                             }
                                         }
                                     ]
@@ -515,33 +515,34 @@ app.post('/slack/interactivity', (req, res) => {
                     break
                 case "modal_unsubscribe":
                     data.getToken(payload.team.id).then(token => {
-                        datastore.delete(datastore.key(['subscriptions', parseInt(payload.view.private_metadata)]), function (err, resp) {
-                            if (err) {
-                                console.log(err.message)
-                            }
-                            else {
-                                slack.updateModal(payload.view.id, token, {
-                                    type: "modal",
-                                    title: {
-                                        type: "plain_text",
-                                        text: "Event Options"
-                                    },
-                                    close: {
-                                        type: "plain_text",
-                                        text: "Close"
-                                    },
-                                    blocks: [
-                                        {
-                                            type: "section",
-                                            text: {
-                                                type: "plain_text",
-                                                text: "I've successfully unsubscribed this channel from this event.",
-                                                emoji: true
+                        datastore.get(datastore.key(['subscriptions', parseInt(payload.view.private_metadata)]), function(err, entity){
+                            datastore.delete(datastore.key(['subscriptions', parseInt(payload.view.private_metadata)]), function (err, resp) {
+                                if (err) {
+                                    console.log(err.message)
+                                }
+                                else {
+                                    slack.updateModal(payload.view.id, token, {
+                                        type: "modal",
+                                        title: {
+                                            type: "plain_text",
+                                            text: "Event Options"
+                                        },
+                                        close: {
+                                            type: "plain_text",
+                                            text: "Close"
+                                        },
+                                        blocks: [
+                                            {
+                                                type: "section",
+                                                text: {
+                                                    type: "mrkdwn",
+                                                    text: `I've successfully unsubscribed <#${entity.channel}> from <https://www.thebluealliance.com/event/${entity.event}|${entity.event_name || entity.event}>.`
+                                                }
                                             }
-                                        }
-                                    ]
-                                })
-                            }
+                                        ]
+                                    })
+                                }
+                            })
                         })
                     })
                     break

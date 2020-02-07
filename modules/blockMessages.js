@@ -381,7 +381,7 @@ module.exports = {
                     type: "section",
                     text: {
                         type: "mrkdwn",
-                        text: `${item.event} in <#${item.channel}>`
+                        text: `<https://www.thebluealliance.com/event/${item.event}|${item.event_name || item.event}> in <#${item.channel}>`
                     },
                     accessory: {
                         type: "button",

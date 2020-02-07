@@ -42,6 +42,19 @@ module.exports = (data, key) => {
         },
         blocks: [
             {
+                type: "section",
+                fields: [
+                    {
+                        type: "mrkdwn",
+                        text: `Event\n<https://www.thebluealliance.com/event/${data.event}|*${data.event_name || data.event}*>`
+                    },
+                    {
+                        type: "mrkdwn",
+                        text: `Channel\n*<#${data.channel}>*`
+                    }
+                ]
+            },
+            {
                 type: "input",
                 label: {
                     type: "plain_text",

@@ -59,7 +59,7 @@ module.exports = {
      * @param {String} event - The event key to watch
      * @param {String} workspace - The workspace ID to watch
      */
-    addEventWatch(event, channel, workspace) {
+    addEventWatch(event, event_name, channel, workspace) {
         var key = datastore.key('subscriptions')
 
         return new Promise((resolve, reject) => {
@@ -76,6 +76,7 @@ module.exports = {
                         data: {
                             team_id: workspace,
                             event,
+                            event_name,
                             channel,
                             type: "all",
                             match_score: true,
