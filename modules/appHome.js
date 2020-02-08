@@ -44,7 +44,7 @@ function appHome(events, team, years, defaultYear, subscribedEvents) {
         {
             type: "divider"
         },
-        ...subscribedEvents.map(item => {
+        ...(subscribedEvents.length > 0 ? subscribedEvents.map(item => {
             return {
                 type: "section",
                 text: {
@@ -62,7 +62,15 @@ function appHome(events, team, years, defaultYear, subscribedEvents) {
                     value: item.keyId.toString()
                 }
             }
-        }),
+        }) : [
+            {
+                type: "section",
+                text: {
+                    type: "mrkdwn",
+                    text: "You're not subscribed to any events yet. You can subscribe in any public channel with `/frc watch <event code>`."
+                }
+            }
+        ]),
         {
             "type": "section",
             "text": {
