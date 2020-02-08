@@ -517,6 +517,7 @@ app.post('/slack/interactivity', (req, res) => {
                     data.getToken(payload.team.id).then(token => {
                         datastore.get(datastore.key(['subscriptions', parseInt(payload.view.private_metadata)]), function(err, entity){
                             datastore.delete(datastore.key(['subscriptions', parseInt(payload.view.private_metadata)]), function (err, resp) {
+                                updateAppHome(payload.user.id, payload.team.id)
                                 if (err) {
                                     console.log(err.message)
                                 }
@@ -736,9 +737,16 @@ function updateAppHome(user, workspace, year) {
             }
         })
 
-        slack.setAppHome(user, blockMessages.appHome(events, team, years, year || null), token)
+        return data.getEventSubscriptions(workspace)
+    }).then(subscribedEvents => {
+        subscribedEvents = subscribedEvents.map(item => {
+            item.keyId = item[datastore.KEY].id
+            return item
+        })
+
+        return slack.setAppHome(user, require('./modules/appHome')(events, team, years, year || null, subscribedEvents), token)
     }).catch((err) => {
-        console.log("Error " + err)
+        console.log("Error " + JSON.stringify(err))
 
         // Thrown above
         if (err == "nullteam") {

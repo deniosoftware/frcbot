@@ -68,8 +68,8 @@ module.exports = {
                     bearer: token
                 }
             }, (err, resp, body) => {
-                if (err || resp.statusCode != 200) {
-                    reject(err)
+                if (err || resp.statusCode != 200 || !body.ok) {
+                    reject(body)
                 }
                 else {
                     resolve(body)
