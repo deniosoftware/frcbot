@@ -80,7 +80,14 @@ module.exports = {
                 type: "section",
                 text: {
                     type: "mrkdwn",
-                    text: "`/frc schedule <number>`: Display the match schedule for the given event. This will highlight your team, as set with `/frc setteam`."
+                    text: "`/frc schedule <event code>`: Display the match schedule for the given event. This will highlight your team, as set with `/frc setteam`."
+                }
+            },
+            {
+                type: "section",
+                text: {
+                    type: "mrkdwn",
+                    text: "`/frc rankings <event code>`: Display the qualification rankings for the given event. This will highlight your team, as set with `/frc setteam`."
                 }
             },
             {

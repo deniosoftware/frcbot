@@ -50,7 +50,10 @@ tbaClient.prototype.getAvatar = function (teamNumber) {
                 "X-TBA-Auth-Key": this.token
             }
         }, (err, resp, body) => {
-            if (!err && resp.statusCode == 200) {
+            if(err || (resp.statusCode != 200 && resp.statusCode != 304)){
+                reject()
+            }
+            else {
                 var parsedBody = JSON.parse(body)
 
                 var base64Obj = parsedBody.find(item => {
@@ -59,12 +62,11 @@ tbaClient.prototype.getAvatar = function (teamNumber) {
                 var base64 = null
                 if (base64Obj) {
                     base64 = base64Obj.details.base64Image
+                    resolve(base64)
                 }
-
-                resolve(base64)
-            }
-            else {
-                reject()
+                else{
+                    reject();
+                }
             }
         })
     })
@@ -77,7 +79,8 @@ tbaClient.prototype.getEvent = function (eventCode) {
                 "X-TBA-Auth-Key": this.token
             }
         }, (err, resp, body) => {
-            if (err || resp.statusCode != 200) {
+            if (err || (resp.statusCode != 200 && resp.statusCode != 304)) {
+                console.log("eventerr")
                 reject("eventerr")
             }
             else {
@@ -94,7 +97,7 @@ tbaClient.prototype.getEventTeams = function (eventCode) {
                 "X-TBA-Auth-Key": this.token
             }
         }, (err, resp, body) => {
-            if (err || resp.statusCode != 200) {
+            if (err || (resp.statusCode != 200 && resp.statusCode != 304)) {
                 reject()
             }
             else {
@@ -111,7 +114,7 @@ tbaClient.prototype.getTeamEvents = function (team, year) {
                 "X-TBA-Auth-Key": this.token
             }
         }, (err, resp, body) => {
-            if (err || resp.statusCode != 200) {
+            if (err || (resp.statusCode != 200 && resp.statusCode != 304)) {
                 reject()
             }
             else {
@@ -128,7 +131,7 @@ tbaClient.prototype.getTeamYears = function (team) {
                 "X-TBA-Auth-Key": this.token
             }
         }, (err, resp, body) => {
-            if (err || resp.statusCode != 200) {
+            if (err || (resp.statusCode != 200 && resp.statusCode != 304)) {
                 reject()
             }
             else {
@@ -145,8 +148,26 @@ tbaClient.prototype.getEventSchedule = function(event_code){
                 "X-TBA-Auth-Key": this.token
             }
         }, (err, resp, body) => {
-            if(err || resp.statusCode != 200){
+            if(err || (resp.statusCode != 200 && resp.statusCode != 304)){
                 reject()
+            }
+            else{
+                resolve(JSON.parse(body))
+            }
+        })
+    })
+}
+
+tbaClient.prototype.getRankings = function(event_code){
+    return new Promise((resolve, reject) => {
+        request(`https://www.thebluealliance.com/api/v3/event/${event_code}/rankings`, {
+            headers: {
+                "X-TBA-Auth-Key": this.token
+            }
+        }, (err, resp, body) => {
+            if(err || (resp.statusCode != 200 && resp.statusCode != 304)){
+                reject("rankingserr")
+                console.log("rankingserr")
             }
             else{
                 resolve(JSON.parse(body))
