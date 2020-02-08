@@ -78,6 +78,7 @@ tbaClient.prototype.getEvent = function (eventCode) {
             }
         }, (err, resp, body) => {
             if (err || resp.statusCode != 200) {
+                console.log("eventerr")
                 reject("eventerr")
             }
             else {
@@ -147,6 +148,24 @@ tbaClient.prototype.getEventSchedule = function(event_code){
         }, (err, resp, body) => {
             if(err || resp.statusCode != 200){
                 reject()
+            }
+            else{
+                resolve(JSON.parse(body))
+            }
+        })
+    })
+}
+
+tbaClient.prototype.getRankings = function(event_code){
+    return new Promise((resolve, reject) => {
+        request(`https://www.thebluealliance.com/api/v3/event/${event_code}/rankings`, {
+            headers: {
+                "X-TBA-Auth-Key": this.token
+            }
+        }, (err, resp, body) => {
+            if(err || resp.statusCode != 200){
+                reject()
+                console.log("rankingserr")
             }
             else{
                 resolve(JSON.parse(body))

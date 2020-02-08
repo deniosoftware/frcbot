@@ -332,9 +332,50 @@ app.post('/slack/tba', (req, res) => {
                 })
             }
             break;
+        case "rankings":
+            if (!parsed.params[0] || parsed.params[0] == "") {
+                res.send("Please type `/frc rankings <event code>` for this to work.")
+            }
+            else if (!/^\d{4}\D{3,}$/.test(parsed.params[0])) {
+                res.json({
+                    text: "Please type `/frc rankings <event code>` for this to work correctly.\nYour event code should look like `2019mabos`. You can get event codes on <https://www.thebluealliance.com|The Blue Alliance>."
+                })
+            }
+            else {
+                var event
+                var rankings
+
+                tbaClient.getEvent(parsed.params[0]).then(_event => {
+                    event = _event
+
+                    return tbaClient.getRankings(parsed.params[0])
+                }).then(_rankings => {
+                    rankings = _rankings.rankings
+
+                    return data.getTeamNumber(req.body.team_id)
+                }).then(number => {
+                    res.json({
+                        response_type: "in_channel",
+                        blocks: [
+                            {
+                                type: "section",
+                                text: {
+                                    type: "mrkdwn",
+                                    text: rankings.find(item => number && (item.team_key.replace(/^frc/, "") == number.toString())).rank.toString()
+                                }
+                            }
+                        ]
+                    })
+                }).catch(() => {
+                    res.json({
+                        text: "I couldn't find that event :cry: moo"
+                    })
+                })
+            }
+            break;
         case "feedback":
             data.getToken(req.body.team_id).then(token => {
-                slack.openModal(req.body.trigger_id, require('./modules/feedbackModal'), token)
+                return slack.openModal(req.body.trigger_id, require('./modules/feedbackModal'), token)
             }).then(() => {
                 console.log("Modal success")
                 res.send()
@@ -515,7 +556,7 @@ app.post('/slack/interactivity', (req, res) => {
                     break
                 case "modal_unsubscribe":
                     data.getToken(payload.team.id).then(token => {
-                        datastore.get(datastore.key(['subscriptions', parseInt(payload.view.private_metadata)]), function(err, entity){
+                        datastore.get(datastore.key(['subscriptions', parseInt(payload.view.private_metadata)]), function (err, entity) {
                             datastore.delete(datastore.key(['subscriptions', parseInt(payload.view.private_metadata)]), function (err, resp) {
                                 updateAppHome(payload.user.id, payload.team.id)
                                 if (err) {
@@ -647,16 +688,16 @@ app.get('/avatar/:teamNumber', (req, res) => {
     var bgColor
     var colorType = 2
 
-    if(!req.query.color || req.query.color == "blue"){
+    if (!req.query.color || req.query.color == "blue") {
         bgColor = blue
     }
-    else if(req.query.color == "red"){
+    else if (req.query.color == "red") {
         bgColor = red
     }
-    else{
+    else {
         colorType = 6
     }
-        
+
     tbaClient.getAvatar(req.params.teamNumber).then(avatar => {
         res.contentType('image/png')
         new PNG({
