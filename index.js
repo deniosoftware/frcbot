@@ -21,9 +21,13 @@ const data = require('./modules/data')
 
 const path = require('path')
 
-const crypto = require('crypto')
-
 const { PNG } = require('pngjs')
+
+const ordinal = require('ordinal')
+
+const regex = {
+    event_code: /^\d{4}.{3,}$/
+}
 
 app.set('view engine', 'ejs')
 app.set('views', 'views')
@@ -176,7 +180,7 @@ app.post('/slack/tba', (req, res) => {
                     })
                 })
             }
-            else if (!/^\d{4}.{3,}$/.test(parsed.params[0])) {
+            else if (!regex.event_code.test(parsed.params[0])) {
                 res.json({
                     text: "Please type `/frc watch <event code>` for this to work correctly.\nYour event code should look like `2019mabos`. You can get event codes on <https://www.thebluealliance.com|The Blue Alliance>."
                 })
@@ -297,7 +301,7 @@ app.post('/slack/tba', (req, res) => {
             if (!parsed.params[0] || parsed.params[0] == "") {
                 res.send("Please type `/frc schedule <event code>` for this to work.")
             }
-            else if (!/^\d{4}\D{3,}$/.test(parsed.params[0])) {
+            else if (!regex.event_code.test(parsed.params[0])) {
                 res.json({
                     text: "Please type `/frc schedule <event code>` for this to work correctly.\nYour event code should look like `2019mabos`. You can get event codes on <https://www.thebluealliance.com|The Blue Alliance>."
                 })
@@ -336,7 +340,7 @@ app.post('/slack/tba', (req, res) => {
             if (!parsed.params[0] || parsed.params[0] == "") {
                 res.send("Please type `/frc rankings <event code>` for this to work.")
             }
-            else if (!/^\d{4}\D{3,}$/.test(parsed.params[0])) {
+            else if (!regex.event_code.test(parsed.params[0])) {
                 res.json({
                     text: "Please type `/frc rankings <event code>` for this to work correctly.\nYour event code should look like `2019mabos`. You can get event codes on <https://www.thebluealliance.com|The Blue Alliance>."
                 })
@@ -354,22 +358,56 @@ app.post('/slack/tba', (req, res) => {
 
                     return data.getTeamNumber(req.body.team_id)
                 }).then(number => {
+                    var rankObj = rankings ? rankings.find(item => item.team_key.replace(/^frc/, "") == number) : null
+                    var text = ""
+                    var btnText = "View Full Rankings"
+                    var response_type = "in_channel"
+
+                    if(rankObj){
+                        text = `Your team (*${number.toString()}*) is currently ranked *${ordinal(rankObj.rank)}* in *<https://www.thebluealliance.com/event/${parsed.params[0]}|${event.name}>*.`
+                    }
+                    else if(rankings){
+                        text = `Please click here to view the qualification rankings for *<https://www.thebluealliance.com/event/${parsed.params[0]}|${event.name}>*.`
+                        btnText = "View"
+                    }
+                    else{
+                        text = `There aren't any rankings for *<https://www.thebluealliance.com/event/${parsed.params[0]}|${event.name}>* right now. Check back later!`
+                        response_type = "ephemeral"
+                    }
+
                     res.json({
-                        response_type: "in_channel",
+                        response_type,
                         blocks: [
                             {
                                 type: "section",
                                 text: {
                                     type: "mrkdwn",
-                                    text: rankings.find(item => number && (item.team_key.replace(/^frc/, "") == number.toString())).rank.toString()
+                                    text
+                                },
+                                accessory: {
+                                    type: "button",
+                                    text: {
+                                        type: "plain_text",
+                                        text: btnText
+                                    },
+                                    action_id: "rankings",
+                                    value: parsed.params[0]
                                 }
                             }
                         ]
                     })
-                }).catch(() => {
-                    res.json({
-                        text: "I couldn't find that event :cry: moo"
-                    })
+                }).catch((err) => {
+                    console.log(err)
+                    if(err == "eventerr" || err == "rankingserr"){
+                        res.json({
+                            text: "I couldn't find that event :cry:"
+                        })
+                    }
+                    else{
+                        res.json({
+                            text: "Something went wrong on our end. :cry: Please try again later, and contact us <https://frcbot.deniosoftware.com/support|here> if the problem persists."
+                        })
+                    }
                 })
             }
             break;
@@ -525,6 +563,63 @@ app.post('/slack/interactivity', (req, res) => {
                                 slack.openModal(payload.trigger_id, require('./modules/scheduleModal')(schedule, { name: event.name + " " + event.year.toString(), key: payload.actions[0].value }, team ? team.toString() : null), token)
                             })
                         })
+                    })
+                    break
+                case "rankings":
+                    var token
+                    var rankings
+
+                    data.getToken(payload.team.id).then(_token => {
+                        token = _token
+                        return tbaClient.getRankings(payload.actions[0].value)
+                    }).then(_rankings => {
+                        rankings = _rankings
+                        return data.getTeamNumber(payload.team.id)
+                    }).then(number => {
+                        return slack.openModal(payload.trigger_id, {
+                            type: "modal",
+                            title: {
+                                type: "plain_text",
+                                text: "Qualification Rankings"
+                            },
+                            blocks: [
+                                ...(rankings.rankings ? rankings.rankings.map(item => {
+                                    team = item.team_key.replace(/^frc/, "")
+                                    number = number ? number.toString() : null
+                                    var isTeam = number && number == team
+
+                                    var medal
+                                    switch(item.rank){
+                                        case 1:
+                                            medal = ":first_place_medal:"
+                                            break;
+                                        case 2:
+                                            medal = ":second_place_medal:"
+                                            break;
+                                        case 3:
+                                            medal = ":third_place_medal:"
+                                            break;
+                                        default:
+                                            medal = ""
+                                    }
+                                    return {
+                                        type: "section",
+                                        text: {
+                                            type: "mrkdwn",
+                                            text: ordinal(item.rank) + ": " + (isTeam ? "*" : "") + (`<https://thebluealliance.com/team/${item.team_key.replace(/^frc/, "")}|${item.team_key.replace(/^frc/, "")}>${isTeam ? "*" : ""}`) + medal + (isTeam ? ":star:" : "")
+                                        }
+                                    }
+                                }) : [
+                                    {
+                                        type: "section",
+                                        text: {
+                                            type: "mrkdwn",
+                                            text: "There aren't any rankings for this event yet. Maybe check back later?"
+                                        }
+                                    }
+                                ])
+                            ]
+                        }, token)
                     })
                     break
                 case "event_options":
