@@ -106,13 +106,22 @@ module.exports = (req, res) => {
 
                             var subscribedTeams = [...(team ? [team.toString()] : []), ...(additionalTeams || [])]
 
+                            var match_name = ""
+                            
+                            if(body.comp_level != "qm"){
+                                match_name = compLevelToString(body.comp_level) + " " + body.set_number.toString() + " Match " + body.match_number.toString()
+                            }
+                            else{
+                                match_name = compLevelToString(body.comp_level) + " " + body.match_number.toString()
+                            }
+
                             if (item.type == "all" || (item.type == "team" && allTeams.some(item => subscribedTeams.includes(item)))) {
                                 data.getToken(item.team_id).then(token => {
                                     slack.postMessage(blockMessages.upcomingMatch({
                                         name: message_data.event_name,
                                         key: body.event_key
                                     }, {
-                                        name: compLevelToString(body.comp_level) + " " + body.match_number.toString(),
+                                        name: match_name,
                                         key: message_data.match_key
                                     }, message_data.team_keys, team, subscribedTeams), item.channel, token)
                                 })
