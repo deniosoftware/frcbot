@@ -47,6 +47,15 @@ module.exports = (req, res) => {
 
                         var subscribedTeams = [...(team ? [team.toString()] : []), ...(additionalTeams || [])]
 
+                        var match_name = ""
+                        
+                        if(message_data.match.comp_level != "qm"){
+                            match_name = compLevelToString(message_data.match.comp_level) + " " + message_data.match.set_number.toString() + " Match " + message_data.match.match_number.toString()
+                        }
+                        else{
+                            match_name = compLevelToString(message_data.match.comp_level) + " " + message_data.match.match_number.toString()
+                        }
+
                         if (item.type == "all" || (item.type == "team" && allTeams.some(item => subscribedTeams.includes(item)))) {
                             data.getToken(item.team_id).then(token => {
                                 slack.postMessage(blockMessages.matchJustPlayed({
@@ -54,7 +63,7 @@ module.exports = (req, res) => {
                                     key: message_data.match.event_key
                                 },
                                     {
-                                        name: compLevelToString(message_data.match.comp_level) + " " + message_data.match.match_number.toString(),
+                                        name: match_name,
                                         key: message_data.match.key
                                     },
                                     message_data.match.alliances.red,
