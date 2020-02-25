@@ -29,50 +29,52 @@ module.exports = (req, res) => {
 
             // Get all match score subscriptions for this event
             datastore.runQuery(query, function (err, entities) {
-                // Loop over subscriptions
-                entities.forEach(item => {
-                    data.getTeamNumber(item.team_id).then(team => {
-                        var additionalTeams;
+                if (entities) {
+                    // Loop over subscriptions
+                    entities.forEach(item => {
+                        data.getTeamNumber(item.team_id).then(team => {
+                            var additionalTeams;
 
-                        try {
-                            if (!item.additional_teams) {
-                                throw new Error("woot")
+                            try {
+                                if (!item.additional_teams) {
+                                    throw new Error("woot")
+                                }
+                                additionalTeams = JSON.parse(item.additional_teams)
                             }
-                            additionalTeams = JSON.parse(item.additional_teams)
-                        }
-                        catch (e) {
-                            // Not JSON
-                            additionalTeams = null;
-                        }
+                            catch (e) {
+                                // Not JSON
+                                additionalTeams = null;
+                            }
 
-                        var subscribedTeams = [...(team ? [team.toString()] : []), ...(additionalTeams || [])]
+                            var subscribedTeams = [...(team ? [team.toString()] : []), ...(additionalTeams || [])]
 
-                        var match_name = ""
-                        
-                        if(message_data.match.comp_level != "qm"){
-                            match_name = compLevelToString(message_data.match.comp_level) + " " + message_data.match.set_number.toString() + " Match " + message_data.match.match_number.toString()
-                        }
-                        else{
-                            match_name = compLevelToString(message_data.match.comp_level) + " " + message_data.match.match_number.toString()
-                        }
+                            var match_name = ""
 
-                        if (item.type == "all" || (item.type == "team" && allTeams.some(item => subscribedTeams.includes(item)))) {
-                            data.getToken(item.team_id).then(token => {
-                                slack.postMessage(blockMessages.matchJustPlayed({
-                                    name: message_data.event_name,
-                                    key: message_data.match.event_key
-                                },
-                                    {
-                                        name: match_name,
-                                        key: message_data.match.key
+                            if (message_data.match.comp_level != "qm") {
+                                match_name = compLevelToString(message_data.match.comp_level) + " " + message_data.match.set_number.toString() + " Match " + message_data.match.match_number.toString()
+                            }
+                            else {
+                                match_name = compLevelToString(message_data.match.comp_level) + " " + message_data.match.match_number.toString()
+                            }
+
+                            if (item.type == "all" || (item.type == "team" && allTeams.some(item => subscribedTeams.includes(item)))) {
+                                data.getToken(item.team_id).then(token => {
+                                    slack.postMessage(blockMessages.matchJustPlayed({
+                                        name: message_data.event_name,
+                                        key: message_data.match.event_key
                                     },
-                                    message_data.match.alliances.red,
-                                    message_data.match.alliances.blue,
-                                    team, subscribedTeams), item.channel, token)
-                            })
-                        }
+                                        {
+                                            name: match_name,
+                                            key: message_data.match.key
+                                        },
+                                        message_data.match.alliances.red,
+                                        message_data.match.alliances.blue,
+                                        team, subscribedTeams), item.channel, token)
+                                })
+                            }
+                        })
                     })
-                })
+                }
             })
             break;
         case "upcoming_match":
@@ -107,11 +109,11 @@ module.exports = (req, res) => {
                             var subscribedTeams = [...(team ? [team.toString()] : []), ...(additionalTeams || [])]
 
                             var match_name = ""
-                            
-                            if(body.comp_level != "qm"){
+
+                            if (body.comp_level != "qm") {
                                 match_name = compLevelToString(body.comp_level) + " " + body.set_number.toString() + " Match " + body.match_number.toString()
                             }
-                            else{
+                            else {
                                 match_name = compLevelToString(body.comp_level) + " " + body.match_number.toString()
                             }
 
