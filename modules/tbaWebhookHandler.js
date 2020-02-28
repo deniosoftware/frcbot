@@ -11,6 +11,9 @@ const request = require('request')
 const TBAClient = require('./tba')
 const tbaClient = new TBAClient(process.env.tbaApiKey)
 
+const {ErrorReporting} = require('@google-cloud/error-reporting')
+const errors = new ErrorReporting()
+
 module.exports = (req, res) => {
     res.end()
 
@@ -29,7 +32,10 @@ module.exports = (req, res) => {
 
             // Get all match score subscriptions for this event
             datastore.runQuery(query, function (err, entities) {
-                if (entities) {
+                if(err){
+                    errors.report(err)
+                }
+                else {
                     // Loop over subscriptions
                     entities.forEach(item => {
                         data.getTeamNumber(item.team_id).then(team => {
@@ -91,6 +97,11 @@ module.exports = (req, res) => {
                     .filter('event', body.event_key)
                     .filter('upcoming_match', true)
                 datastore.runQuery(query, function (err, entities) {
+                    if(err){
+                        errors.report(err)
+                        return
+                    }
+
                     entities.forEach(item => {
                         data.getTeamNumber(item.team_id).then(team => {
                             var additionalTeams;
@@ -142,7 +153,7 @@ module.exports = (req, res) => {
 
                 datastore.runQuery(query, function (err, entities) {
                     if (err) {
-                        console.log(err.message)
+                        errors.report(err)
                     }
                     else {
                         entities.forEach(item => {
