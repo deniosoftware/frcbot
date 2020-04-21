@@ -1,11 +1,16 @@
 # FRCBot
 ![FRCBot Logo](public/img/logo_256.png)
 
+[![](https://img.shields.io/static/v1?label=Add%20to&message=Slack&color=blue&logo=slack&style=for-the-badge)](https://frcbot.deniosoftware.com/install)
+
+![GitHub stars](https://img.shields.io/github/stars/deniosoftware/frcbot?logo=github&style=for-the-badge)
+![GitHub contributors](https://img.shields.io/github/contributors/deniosoftware/frcbot?logo=github&style=for-the-badge)
+
 ## [Donate to keep FRCBot alive!](https://donorbox.org/denio-software)
 
 This app provides FRC integration, right here in Slack! Get info on any FIRST Robotics Competition team, subscribe to match results, get event schedules, and more!<br>
 
-[<img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" />](https://frcbot.deniosoftware.com/install)
+<!--[<img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" />](https://frcbot.deniosoftware.com/install)-->
 
 Learn more at https://frcbot.deniosoftware.com
 
