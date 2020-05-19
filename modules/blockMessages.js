@@ -166,7 +166,7 @@ module.exports = {
      * @param {String} key 
      * @param {String|null} team 
      */
-    newEventSubscription(event, channel, key, team) {
+    newEventSubscription(event, channel, key, team, user) {
         var blocks = [
             {
                 "type": "section",
@@ -191,6 +191,15 @@ module.exports = {
                     "value": key,
                     "style": "primary"
                 }
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": `Setup by <@${user}>`
+                    }
+                ]
             }
         ]
 

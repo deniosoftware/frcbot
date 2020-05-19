@@ -219,7 +219,7 @@ app.post('/slack/tba', (req, res) => {
                     return slack.selfJoinChannel(req.body.channel_id, _token)
                 }).then(() => {
                     var isInEvent = teams.some(element => element.team_number == number)
-                    slack.postToSlashCommand(req.body.response_url, blockMessages.newEventSubscription(event, req.body.channel_id, key, (number && isInEvent) ? number : null))
+                    slack.postToSlashCommand(req.body.response_url, blockMessages.newEventSubscription(event, req.body.channel_id, key, (number && isInEvent) ? number : null, req.body.user_id))
                 }).catch(err => {
                     var text
                     if (err == "alreadysubscribed") {
