@@ -9,21 +9,19 @@ var TBAClient = require('./modules/tba')
 var tbaClient = new TBAClient(process.env.tbaApiKey)
 
 var parseSlashCommand = require('./modules/slashCommandParser')
-
 var blockMessages = require('./modules/blockMessages')
 
 var slack = require('./modules/slack')
+const data = require('./modules/data')
 
 const { Datastore } = require('@google-cloud/datastore')
 const datastore = new Datastore()
 
-const data = require('./modules/data')
-
 const path = require('path')
-
 const { PNG } = require('pngjs')
-
 const ordinal = require('ordinal')
+
+const discord = require('./modules/discordInstance')
 
 const regex = {
     event_code: /^\d{4}.{3,}$/
@@ -60,6 +58,10 @@ app.get('/welcome', (req, res) => { res.render('welcome') })
 
 app.get('/install', (req, res) => {
     res.redirect(`https://slack.com/oauth/v2/authorize?client_id=${process.env.client_id}&scope=${process.env.botScopes}&redirect_uri=${process.env.redirect_uri}`)
+})
+
+app.get('/install/discord', (req, res) => {
+    res.redirect(`https://discordapp.com/api/oauth2/authorize?client_id=${process.env.discordClientID}&scope=bot&permissions=${process.env.discordPermissions}`)
 })
 
 app.use('/slack', require('./modules/verification/slackVerification'))
@@ -363,14 +365,14 @@ app.post('/slack/tba', (req, res) => {
                     var btnText = "View Full Rankings"
                     var response_type = "in_channel"
 
-                    if(rankObj){
+                    if (rankObj) {
                         text = `Your team (*${number.toString()}*) is currently ranked *${ordinal(rankObj.rank)}* in *<https://www.thebluealliance.com/event/${parsed.params[0]}|${event.name}>*.`
                     }
-                    else if(rankings){
+                    else if (rankings) {
                         text = `Please click here to view the qualification rankings for *<https://www.thebluealliance.com/event/${parsed.params[0]}|${event.name}>*.`
                         btnText = "View"
                     }
-                    else{
+                    else {
                         text = `There aren't any rankings for *<https://www.thebluealliance.com/event/${parsed.params[0]}|${event.name}>* right now. Check back later!`
                         response_type = "ephemeral"
                     }
@@ -398,12 +400,12 @@ app.post('/slack/tba', (req, res) => {
                     })
                 }).catch((err) => {
                     console.log(err)
-                    if(err == "eventerr" || err == "rankingserr"){
+                    if (err == "eventerr" || err == "rankingserr") {
                         res.json({
                             text: "I couldn't find that event :cry:"
                         })
                     }
-                    else{
+                    else {
                         res.json({
                             text: "Something went wrong on our end. :cry: Please try again later, and contact us <https://frcbot.deniosoftware.com/support|here> if the problem persists."
                         })
@@ -589,7 +591,7 @@ app.post('/slack/interactivity', (req, res) => {
                                     var isTeam = number && number == team
 
                                     var medal
-                                    switch(item.rank){
+                                    switch (item.rank) {
                                         case 1:
                                             medal = ":first_place_medal:"
                                             break;
@@ -610,14 +612,14 @@ app.post('/slack/interactivity', (req, res) => {
                                         }
                                     }
                                 }) : [
-                                    {
-                                        type: "section",
-                                        text: {
-                                            type: "mrkdwn",
-                                            text: "There aren't any rankings for this event yet. Maybe check back later?"
+                                        {
+                                            type: "section",
+                                            text: {
+                                                type: "mrkdwn",
+                                                text: "There aren't any rankings for this event yet. Maybe check back later?"
+                                            }
                                         }
-                                    }
-                                ])
+                                    ])
                             ]
                         }, token)
                     })
@@ -801,7 +803,8 @@ app.get('/avatar/:teamNumber', (req, res) => {
         }).parse(Buffer.from(avatar, "base64")).on("parsed", function () {
             this.pack().pipe(res)
         })
-    }).catch(() => {
+    }).catch((e) => {
+        console.log(e)
         res.contentType('image/png').sendFile(require('path').join(__dirname, "public", "img", "first.png"))
     })
 })
