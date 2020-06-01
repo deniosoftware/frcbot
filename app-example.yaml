@@ -1,19 +1,19 @@
 runtime: nodejs10
 env_variables:
-  # Slack client ID 
-  client_id: 
+  # Slack client ID
+  client_id:
   # Slack client secret
-  client_secret: 
+  client_secret:
   # Slack redirect_uri
-  redirect_uri: 
+  redirect_uri:
   # The Blue Alliance API key
   # https://thebluealliance.com/apidocs
-  tbaApiKey: 
+  tbaApiKey:
   # The Blue Alliance webhook secret (for verification)
-  tbaWebhookSecret: 
+  tbaWebhookSecret:
   # Slack signing secret (for verification)
-  slackSigningSecret: 
+  slackSigningSecret:
   # 99inbound URL for feedback
-  feedbackUrl: 
+  feedbackUrl:
   # Comma- or space-seperated OAuth scopes for Slack
-  botScopes: 
+  botScopes:

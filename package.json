@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "deploy": "gcloud app deploy --project the-blue-alliance-slack"
+    "deploy": "gcloud app deploy --project the-blue-alliance-slack",
+    "format": "prettier . --write",
+    "checkformat": "prettier --check ."
   },
   "author": "Caleb Denio",
   "license": "ISC",
@@ -19,5 +21,8 @@
     "ordinal": "^1.0.3",
     "pngjs": "^3.4.0",
     "request": "^2.88.0"
+  },
+  "devDependencies": {
+    "prettier": "2.0.5"
   }
 }

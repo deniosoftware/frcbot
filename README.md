@@ -1,4 +1,5 @@
 # FRCBot
+
 ![FRCBot Logo](public/img/logo_256.png)
 
 [![](https://img.shields.io/static/v1?label=Add%20to&message=Slack&color=blue&logo=slack&style=for-the-badge)](https://frcbot.deniosoftware.com/install)
@@ -11,7 +12,6 @@
 This app provides FRC integration, right here in Slack! Get info on any FIRST Robotics Competition team, subscribe to match results, get event schedules, and more!<br>
 
 Learn more at https://frcbot.deniosoftware.com
-
 
 Powered by [The Blue Alliance](https://www.thebluealliance.com)
 

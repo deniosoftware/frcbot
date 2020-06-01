@@ -1,0 +1,17 @@
+name: Check formatting
+on:
+  - push
+  - pull_request
+jobs:
+  format:
+    name: Check formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout repository
+      - uses: actions/setup-node@v2-beta
+        name: Setup Node.js
+      - run: npm install
+        name: Install dependencies
+      - run: npm run checkformat
+        name: Check formatting

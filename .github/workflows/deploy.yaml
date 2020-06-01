@@ -15,5 +15,5 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
       - run: 'echo "${{ secrets.APP_YAML }}" > app.yaml'
-      - run: 'test -f app.yaml'
-      - run: 'gcloud app deploy'
+      - run: "test -f app.yaml"
+      - run: "gcloud app deploy"
