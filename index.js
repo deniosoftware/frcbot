@@ -389,7 +389,7 @@ app.post("/slack/tba", (req, res) => {
                     type: "mrkdwn",
                     text: `Please click here to view the match schedule for <https://www.thebluealliance.com/event/${
                       parsed.params[0]
-                      }|*${event.name} ${event.year.toString()}*>.`,
+                    }|*${event.name} ${event.year.toString()}*>.`,
                   },
                   accessory: {
                     type: "button",
@@ -438,8 +438,8 @@ app.post("/slack/tba", (req, res) => {
           .then((number) => {
             var rankObj = rankings
               ? rankings.find(
-                (item) => item.team_key.replace(/^frc/, "") == number
-              )
+                  (item) => item.team_key.replace(/^frc/, "") == number
+                )
               : null;
             var text = "";
             var btnText = "View Full Rankings";
@@ -450,7 +450,7 @@ app.post("/slack/tba", (req, res) => {
                 rankObj.rank
               )}* in *<https://www.thebluealliance.com/event/${
                 parsed.params[0]
-                }|${event.name}>*.`;
+              }|${event.name}>*.`;
             } else if (rankings) {
               text = `Please click here to view the qualification rankings for *<https://www.thebluealliance.com/event/${parsed.params[0]}|${event.name}>*.`;
               btnText = "View";
@@ -730,53 +730,53 @@ app.post("/slack/interactivity", (req, res) => {
                   blocks: [
                     ...(rankings.rankings
                       ? rankings.rankings.map((item) => {
-                        team = item.team_key.replace(/^frc/, "");
-                        number = number ? number.toString() : null;
-                        var isTeam = number && number == team;
+                          team = item.team_key.replace(/^frc/, "");
+                          number = number ? number.toString() : null;
+                          var isTeam = number && number == team;
 
-                        var medal;
-                        switch (item.rank) {
-                          case 1:
-                            medal = ":first_place_medal:";
-                            break;
-                          case 2:
-                            medal = ":second_place_medal:";
-                            break;
-                          case 3:
-                            medal = ":third_place_medal:";
-                            break;
-                          default:
-                            medal = "";
-                        }
-                        return {
-                          type: "section",
-                          text: {
-                            type: "mrkdwn",
-                            text:
-                              ordinal(item.rank) +
-                              ": " +
-                              (isTeam ? "*" : "") +
-                              `<https://thebluealliance.com/team/${item.team_key.replace(
-                                /^frc/,
-                                ""
-                              )}|${item.team_key.replace(/^frc/, "")}>${
-                              isTeam ? "*" : ""
-                              }` +
-                              medal +
-                              (isTeam ? ":star:" : ""),
-                          },
-                        };
-                      })
+                          var medal;
+                          switch (item.rank) {
+                            case 1:
+                              medal = ":first_place_medal:";
+                              break;
+                            case 2:
+                              medal = ":second_place_medal:";
+                              break;
+                            case 3:
+                              medal = ":third_place_medal:";
+                              break;
+                            default:
+                              medal = "";
+                          }
+                          return {
+                            type: "section",
+                            text: {
+                              type: "mrkdwn",
+                              text:
+                                ordinal(item.rank) +
+                                ": " +
+                                (isTeam ? "*" : "") +
+                                `<https://thebluealliance.com/team/${item.team_key.replace(
+                                  /^frc/,
+                                  ""
+                                )}|${item.team_key.replace(/^frc/, "")}>${
+                                  isTeam ? "*" : ""
+                                }` +
+                                medal +
+                                (isTeam ? ":star:" : ""),
+                            },
+                          };
+                        })
                       : [
-                        {
-                          type: "section",
-                          text: {
-                            type: "mrkdwn",
-                            text:
-                              "There aren't any rankings for this event yet. Maybe check back later?",
+                          {
+                            type: "section",
+                            text: {
+                              type: "mrkdwn",
+                              text:
+                                "There aren't any rankings for this event yet. Maybe check back later?",
+                            },
                           },
-                        },
-                      ]),
+                        ]),
                   ],
                 },
                 token
@@ -862,9 +862,9 @@ app.post("/slack/interactivity", (req, res) => {
                               type: "mrkdwn",
                               text: `I've successfully unsubscribed <#${
                                 entity.channel
-                                }> from <https://www.thebluealliance.com/event/${
+                              }> from <https://www.thebluealliance.com/event/${
                                 entity.event
-                                }|${entity.event_name || entity.event}>.`,
+                              }|${entity.event_name || entity.event}>.`,
                             },
                           },
                         ],
@@ -927,8 +927,8 @@ app.post("/slack/interactivity", (req, res) => {
         var additional_teams = payload.view.state.values.additional_teams
           .additional_teams.value
           ? payload.view.state.values.additional_teams.additional_teams.value.split(
-            /\,\s*/
-          )
+              /\,\s*/
+            )
           : [];
 
         if (!additional_teams.every((i) => /^\d+$/.test(i))) {
@@ -1004,13 +1004,17 @@ app.get("/avatar/:teamNumber", (req, res) => {
     .getAvatar(req.params.teamNumber)
     .then((avatar) => {
       res.contentType("image/png");
-      sharp(Buffer.from(avatar, "base64")).resize(200, 200, {
-        kernel: sharp.kernel.nearest
-      }).flatten({
-        background: bgColor
-      }).toBuffer().then(buffer => {
-        res.send(buffer)
-      })
+      sharp(Buffer.from(avatar, "base64"))
+        .resize(200, 200, {
+          kernel: sharp.kernel.nearest,
+        })
+        .flatten({
+          background: bgColor,
+        })
+        .toBuffer()
+        .then((buffer) => {
+          res.send(buffer);
+        });
     })
     .catch(() => {
       res
@@ -1095,8 +1099,8 @@ function updateAppHome(user, workspace, year) {
           dates:
             item.start_date != item.end_date
               ? parseDate(new Date(item.start_date)) +
-              " - " +
-              parseDate(new Date(item.end_date))
+                " - " +
+                parseDate(new Date(item.end_date))
               : parseDate(new Date(item.start_date)),
           location: item.city + ", " + item.state_prov + ", " + item.country,
           type: item.event_type_string,
@@ -1181,5 +1185,5 @@ function parseDate(date) {
   ];
   return `${
     months[date.getUTCMonth()]
-    } ${date.getUTCDate().toString()}, ${date.getUTCFullYear().toString()}`;
+  } ${date.getUTCDate().toString()}, ${date.getUTCFullYear().toString()}`;
 }
