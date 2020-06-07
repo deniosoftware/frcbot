@@ -19,8 +19,8 @@
     "ejs": "^3.0.1",
     "express": "^4.17.1",
     "ordinal": "^1.0.3",
-    "pngjs": "^3.4.0",
-    "request": "^2.88.0"
+    "request": "^2.88.0",
+    "sharp": "^0.25.3"
   },
   "devDependencies": {
     "prettier": "2.0.5"
