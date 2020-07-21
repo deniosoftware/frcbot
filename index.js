@@ -215,7 +215,7 @@ app.post("/slack/tba", (req, res) => {
       if (!parsed.params[0] || parsed.params[0] == "") {
         data.getEventSubscriptions(req.body.team_id).then((subs) => {
           res.json({
-            response_type: "in_channel",
+            response_type: "ephemeral",
             blocks: blockMessages.subscriptionList(
               subs.map((item) => {
                 item.keyId = item[datastore.KEY].id;
@@ -317,7 +317,7 @@ app.post("/slack/tba", (req, res) => {
         isNaN(parsed.params[0])
       ) {
         res.json({
-          response_type: "in_channel",
+          response_type: "ephemeral",
           text:
             "Please type `/frc setteam <number>` for this to work correctly.",
         });
@@ -330,9 +330,9 @@ app.post("/slack/tba", (req, res) => {
             res.send(err);
           } else if (entities.length == 0) {
             res.json({
-              response_type: "in_channel",
+              response_type: "ephemeral",
               text:
-                "Hmm... I can't find your Slack workspace. Please try reinstalling TBA for Slack.",
+                "Hmm... I can't find your Slack workspace. Please try reinstalling FRCBot.",
             });
           } else {
             entities[0].team_number = parseInt(parsed.params[0]);
@@ -341,7 +341,7 @@ app.post("/slack/tba", (req, res) => {
                 res.send(err.message);
               } else {
                 res.json({
-                  response_type: "in_channel",
+                  response_type: "ephemeral",
                   text: `Awesome! :tada: I've updated your team number to *${parsed.params[0]}*.\nYou can type \`/frc unsetteam\` to unset your team number.`,
                 });
               }
@@ -353,7 +353,7 @@ app.post("/slack/tba", (req, res) => {
     case "unsetteam":
       data.deleteTeamNumber(req.body.team_id).then(() => {
         res.json({
-          response_type: "in_channel",
+          response_type: "ephemeral",
           text:
             "I've successfully deleted your team number. :heavy_check_mark:",
         });
@@ -522,7 +522,7 @@ app.post("/slack/tba", (req, res) => {
     case null:
     case "":
       res.json({
-        response_type: "in_channel",
+        response_type: "ephemeral",
         blocks: blockMessages.help(),
       });
       break;
