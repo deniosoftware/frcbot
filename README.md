@@ -1,5 +1,9 @@
 # FRCBot
 
+## ℹ️ [FRCBot is currently being rewritten in TypeScript](https://github.com/cjdenio/frcbot-2.0)
+
+> The version found here is still in production, though the TypeScript version is expected to take its place in a couple months. You can check out the in-process rewrite over here: https://github.com/cjdenio/frcbot-2.0
+
 ![FRCBot Logo](public/img/logo_256.png)
 
 [![](https://img.shields.io/static/v1?label=Add%20to&message=Slack&color=blue&logo=slack&style=for-the-badge)](https://frcbot.deniosoftware.com/install)
@@ -7,9 +11,7 @@
 ![GitHub stars](https://img.shields.io/github/stars/deniosoftware/frcbot?logo=github&style=for-the-badge)
 ![GitHub contributors](https://img.shields.io/github/contributors/deniosoftware/frcbot?logo=github&style=for-the-badge)
 
-## [Donate to keep FRCBot alive!](https://donorbox.org/denio-software)
-
-This app provides FRC integration, right here in Slack! Get info on any FIRST Robotics Competition team, subscribe to match results, get event schedules, and more!<br>
+This app provides FRC integration, right here in Slack! Get info on any FIRST Robotics Competition team, subscribe to match results, get event schedules, and more!
 
 Learn more at https://frcbot.deniosoftware.com
 
