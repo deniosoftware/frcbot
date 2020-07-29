@@ -64,6 +64,15 @@ module.exports = (req, res) => {
             },
           ]
         : []),
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: `You've found the sacred :pineapple: easter egg, <@${req.body.user_id}>`
+            }
+          ]
+        }
     ],
   });
 };
